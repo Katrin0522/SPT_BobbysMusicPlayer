@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using UnityEngine;
-using HeadsetClass = GClass2654;
+using HeadsetClass = HeadphonesItemClass;
 
 namespace BobbysMusicPlayer.Patches
 {
@@ -24,8 +24,8 @@ namespace BobbysMusicPlayer.Patches
         {
             if (__instance == Singleton<GameWorld>.Instance.MainPlayer)
             {
-                EquipmentClass equipment = __instance.Equipment;
-                LootItemClass headwear = equipment.GetSlot(EquipmentSlot.Headwear).ContainedItem as LootItemClass;
+                InventoryEquipment equipment = __instance.Equipment;
+                CompoundItem headwear = equipment.GetSlot(EquipmentSlot.Headwear).ContainedItem as CompoundItem;
                 HeadsetClass headset = (equipment.GetSlot(EquipmentSlot.Earpiece).ContainedItem as HeadsetClass) ?? ((headwear != null) ? headwear.GetAllItemsFromCollection().OfType<HeadsetClass>().FirstOrDefault<HeadsetClass>() : null);
                 if (headset != null)
                 {
