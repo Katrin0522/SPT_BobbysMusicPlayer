@@ -12,7 +12,7 @@ using System;
 
 namespace BobbysMusicPlayer.Patches
 {
-
+    // The following patches mimic the methods that they patch while replacing the coroutine and AudioClips with ours.
     public class MenuMusicPatch : ModulePatch
     {
         internal static int trackCounter;
@@ -26,7 +26,7 @@ namespace BobbysMusicPlayer.Patches
         {
             return AccessTools.Method(typeof(GUISounds), nameof(GUISounds.method_3));
         }
-
+        // This method is largely identical to Plugin.LoadAmbientSoundtrackClips
         internal static async void LoadAudioClips()
         {
             float totalLength = 0;
@@ -44,14 +44,14 @@ namespace BobbysMusicPlayer.Patches
             {
                 int nextRandom = Plugin.rand.Next(trackListToPlay.Count);
                 string track = trackListToPlay[nextRandom];
-                string trackPath = Path.GetFileName(track);
+                string trackName = Path.GetFileName(track);
                 Plugin plugin = new Plugin();
                 AudioClip unityAudioClip = await plugin.AsyncRequestAudioClip(track);
                 trackArray.Add(unityAudioClip);
-                trackNamesArray.Add(trackPath);
+                trackNamesArray.Add(trackName);
                 trackListToPlay.Remove(track);
                 totalLength += trackArray.Last().length;
-                Plugin.LogSource.LogInfo(trackPath + " has been loaded and added to playlist");
+                Plugin.LogSource.LogInfo(trackName + " has been loaded and added to playlist");
             } while ((totalLength < targetLength) && (!trackListToPlay.IsNullOrEmpty()));
         }
 
@@ -63,6 +63,10 @@ namespace BobbysMusicPlayer.Patches
             {
                 if (trackArray.IsNullOrEmpty())
                 {
+                    // If the player is not replacing Main Menu music, they will get to enjoy a properly shuffled default playlist.
+                    // All BSG does is pick a random track and make sure it's not the same one that just played.
+                    // More importantly, adding each element of BSG's AudioClip array to our trackArray means that players can
+                    // use "Jukebox" controls on the default menu music.
                     int[] randomArray = new int[___audioClip_0.Length];
                     Plugin.LogSource.LogInfo("Starting 'for loop'");
                     for (int i = 0; i < ___audioClip_0.Length - 1; i++)

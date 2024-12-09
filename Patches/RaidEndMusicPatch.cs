@@ -12,40 +12,35 @@ namespace BobbysMusicPlayer.Patches
     {
         internal static List<string> deathMusicList = new List<string>();
         internal static List<string> extractMusicList = new List<string>();
-        private Dictionary<EEndGameSoundType, List<string>> raidEndDictionary = new Dictionary<EEndGameSoundType, List<string>> 
+        private static Dictionary<EEndGameSoundType, List<string>> raidEndDictionary = new Dictionary<EEndGameSoundType, List<string>> 
         {
             [EEndGameSoundType.ArenaLose] = deathMusicList,
             [EEndGameSoundType.ArenaWin] = extractMusicList
         };
         private static AudioClip raidEndClip;
-        Plugin plugin = new Plugin();
+        private static Plugin plugin = new Plugin();
 
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(UISoundsWrapper), nameof(UISoundsWrapper.GetEndGameClip));
         }
 
-        private void LoadNextTrack(EEndGameSoundType soundType)
+        private static void LoadNextTrack(EEndGameSoundType soundType)
         {
-            string raidEndTrack;
-            if (!raidEndDictionary[soundType].IsNullOrEmpty())
-            {
-                raidEndTrack = raidEndDictionary[soundType][Plugin.rand.Next(raidEndDictionary[soundType].Count)];
-            }
-            else
-            {
-                return;
-            }
+            string raidEndTrack = raidEndDictionary[soundType][Plugin.rand.Next(raidEndDictionary[soundType].Count)];
             raidEndClip = plugin.RequestAudioClip(raidEndTrack);
-            string trackPath = Path.GetFileName(raidEndTrack);
-            Logger.LogInfo(trackPath + " assigned to " + soundType);
+            string trackName = Path.GetFileName(raidEndTrack);
+            Logger.LogInfo(trackName + " assigned to " + soundType);
         }
 
         [PatchPrefix]
         static bool Prefix(ref AudioClip __result, EEndGameSoundType soundType)
         {
-            RaidEndMusicPatch patch = new RaidEndMusicPatch();
-            patch.LoadNextTrack(soundType);
+            if (raidEndDictionary[soundType].IsNullOrEmpty())
+            {
+                return true;
+            }
+            LoadNextTrack(soundType);
             if (raidEndClip != null)
             {
                 __result = raidEndClip;
