@@ -13,7 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
-using HeadsetClass = GClass2654;
+using HeadsetClass = HeadphonesItemClass;
 
 namespace BobbysMusicPlayer
 {
@@ -393,9 +393,8 @@ namespace BobbysMusicPlayer
 
         private void VolumeSetter()
         {
-            // Next two lines are responsible for checking if the player is wearing an active headset, either in the headset slot or the helmet slot.
-            // Taken from Fontaine's Realism Mod. Credit to him.
-            LootItemClass headwear = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Headwear).ContainedItem as LootItemClass;
+            // Next two lines are taken from Fontaine's Realism Mod. Credit to him
+            CompoundItem headwear = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Headwear).ContainedItem as CompoundItem;
             HeadsetClass headset = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Earpiece).ContainedItem as HeadsetClass ?? ((headwear != null) ? headwear.GetAllItemsFromCollection().OfType<HeadsetClass>().FirstOrDefault<HeadsetClass>() : null);
             if (headset != null)
             {
