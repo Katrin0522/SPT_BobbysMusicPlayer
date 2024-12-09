@@ -11,6 +11,8 @@ namespace BobbysMusicPlayer.Patches
     public class UISoundsPatch : ModulePatch
     {
         internal static List<string>[] uiSounds = new List<string>[8];
+        // uiSoundsDir makes it easy to get the contents of each subfolder of UISounds.
+        // Plugin.Awake uses it in a foreach loop.
         internal static string[] uiSoundsDir = new string[8]
         {
             "QuestCompleted", "QuestFailed", "QuestFinished", "QuestStarted", "QuestSubtaskComplete", "DeathSting", "ErrorSound", "TradeSound"
@@ -39,6 +41,7 @@ namespace BobbysMusicPlayer.Patches
             int counter = 0;
             foreach (List<string> list in uiSounds)
             {
+                // Each element of uiSoundsClips is a List of AudioClips since we want players to be able to import as many sounds as they want per folder.
                 uiSoundsClips[counter] = new List<AudioClip>();
                 foreach (string track in list)
                 {
@@ -60,6 +63,7 @@ namespace BobbysMusicPlayer.Patches
             {
                 return true;
             }
+            // The sound that plays in game will be a randomly selected sound from the corresponding folder
             __result = audioClipArray[Plugin.rand.Next(audioClipArray.Count)];
             return false;
         }

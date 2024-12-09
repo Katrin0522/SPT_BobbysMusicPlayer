@@ -79,7 +79,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationManagerAttributes.cs" />
-    <Compile Include="Patches\HeadsetPatch.cs" />
     <Compile Include="Patches\CombatMusicPatch.cs" />
     <Compile Include="Patches\UISoundsPatch.cs" />
     <Compile Include="Patches\MenuMusicPatch.cs" />

@@ -22,6 +22,7 @@ namespace BobbysMusicPlayer
         internal static Coroutine menuMusicCoroutine;
         private static bool paused = false;
         private static float pausedTime = 0f;
+        // This method is responsible for handling the "Jukebox" controls of the Main Menu
         public static void MenuMusicControls()
         {
             if (!SoundtrackJukebox.soundtrackCalled && Audio.menuMusicAudioSource != null)
@@ -104,9 +105,10 @@ namespace BobbysMusicPlayer
                 trackCounter = 0;
             }
         }
+        // This method is responsible for handling the "Jukebox" controls of the Ambient Soundtrack
         public static void SoundtrackControls()
         {
-            if (!soundtrackCalled || Audio.spawnAudioSource.isPlaying)
+            if (Audio.spawnAudioSource.isPlaying)
             {
                 return;
             }
@@ -333,13 +335,14 @@ namespace BobbysMusicPlayer
             {
                 int nextRandom = rand.Next(ambientTrackListToPlay.Count);
                 string track = ambientTrackListToPlay[nextRandom];
-                string trackPath = Path.GetFileName(track);
+                string trackName = Path.GetFileName(track);
                 AudioClip unityAudioClip = await AsyncRequestAudioClip(track);
                 ambientTrackArray.Add(unityAudioClip);
-                ambientTrackNamesArray.Add(trackPath);
+                ambientTrackNamesArray.Add(trackName);
                 ambientTrackListToPlay.Remove(track);
+                // Adding the length of each track to totalLength makes sure that the mod loads the minimum number of random tracks to meet the target length.
                 totalLength += ambientTrackArray.Last().length;
-                LogSource.LogInfo(trackPath + " has been loaded and added to playlist");
+                LogSource.LogInfo(trackName + " has been loaded and added to playlist");
             }
             HasFinishedLoadingAudio = true;
         }
@@ -367,6 +370,8 @@ namespace BobbysMusicPlayer
                     }
                     combatTimer -= Time.deltaTime;
                 }
+                // When the combat timer runs out, the AudioSource will only stop playing once it's done fading out.
+                // If the player re-enters combat in the middle of fading out, the music will smoothly fade back in from the volume it faded out to.
                 else if (combatTimer <= 0)
                 {
                     if (Audio.combatAudioSource.isPlaying)
@@ -378,6 +383,7 @@ namespace BobbysMusicPlayer
                         {
                             Audio.combatAudioSource.loop = false;
                             Audio.combatAudioSource.Stop();
+                            // The combat AudioSource's clip will be randomly selected each time the combat music stops
                             Audio.combatAudioSource.clip = combatMusicClipList[rand.Next(combatMusicClipList.Count)];
                         }
                     }
@@ -398,9 +404,13 @@ namespace BobbysMusicPlayer
             {
                 headsetMultiplier = 1f;
             }
+            // Each of the in-raid AudioSources' volumes are calculated by multiplying their configurable volumes with the indoor multiplier and the headset multiplier.
+            environmentDict[EnvironmentType.Indoor] = IndoorMultiplier.Value;
             soundtrackVolume = SoundtrackVolume.Value * environmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
             spawnMusicVolume = SpawnMusicVolume.Value * environmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
             combatMusicVolume = CombatMusicVolume.Value * environmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
+
+            // We check if the combat AudioSource is playing so that the CombatLerp method can do its job adjusting the ambient soundtrack and spawn music AudioSources
             if (!Audio.combatAudioSource.isPlaying)
             {
                     Audio.AdjustVolume(Audio.soundtrackAudioSource, soundtrackVolume);
@@ -411,8 +421,8 @@ namespace BobbysMusicPlayer
                 Audio.AdjustVolume(Audio.combatAudioSource, combatMusicVolume);
             }   
         }
-
-        private void PrepareRaidAudioClips()
+        // This method gets called once when loading into a raid. It makes sure every AudioClip is ready to play in the raid
+        private async void PrepareRaidAudioClips()
         {
             if (!HasStartedLoadingAudio)
             {
@@ -426,13 +436,14 @@ namespace BobbysMusicPlayer
                     spawnTrackClipList.Clear();
                     foreach (var track in spawnTrackList)
                     {
-                        spawnTrackClipList.Add(RequestAudioClip(track));
+                        spawnTrackClipList.Add(await AsyncRequestAudioClip(track));
                         LogSource.LogInfo("RequestAudioClip called for spawnTrackClip");
                     }
                     spawnTrackHasPlayed = false;
                 }
                 if (!combatMusicTrackList.IsNullOrEmpty())
                 {
+                    // The next 4 lines prevent any issues that could be caused by exiting a raid before the combat timer ends
                     combatTimer = 0f;
                     lerp = 0;
                     Audio.combatAudioSource.Stop();
@@ -440,7 +451,7 @@ namespace BobbysMusicPlayer
                     combatMusicClipList.Clear();
                     foreach (var track in combatMusicTrackList)
                     {
-                        combatMusicClipList.Add(RequestAudioClip(track));
+                        combatMusicClipList.Add(await AsyncRequestAudioClip(track));
                     }
                     Audio.combatAudioSource.clip = combatMusicClipList[rand.Next(combatMusicClipList.Count)];
                 }
@@ -463,6 +474,7 @@ namespace BobbysMusicPlayer
         {
             LogSource = Logger;
             MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\CustomMenuMusic\\sounds"));
+            //This if statement exists just in case some people install outdated music packs by mistake
             if (MenuMusicPatch.menuTrackList.IsNullOrEmpty() && Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\CustomMenuMusic\\sounds"))
             {
                 MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\CustomMenuMusic\\sounds"));
@@ -479,6 +491,7 @@ namespace BobbysMusicPlayer
             int counter = 0;
             foreach (var dir in UISoundsPatch.uiSoundsDir)
             {
+                // Each element of uiSounds is a List of strings so that users can add as few or as many sounds as they want to a given folder
                 UISoundsPatch.uiSounds[counter] = new List<string>();
                 UISoundsPatch.uiSounds[counter].AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\UISounds\\" + dir));
                 counter++;
@@ -529,9 +542,7 @@ namespace BobbysMusicPlayer
 
         private void Update()
         {
-            environmentDict[EnvironmentType.Indoor] = IndoorMultiplier.Value;
             MenuMusicJukebox.MenuMusicControls();
-            SoundtrackJukebox.SoundtrackControls();
             if (Singleton<GameWorld>.Instance == null)
             {
                 if (!MenuMusicPatch.HasReloadedAudio)
@@ -564,6 +575,7 @@ namespace BobbysMusicPlayer
             CombatMusic();
             VolumeSetter();
             PlaySpawnMusic();
+            SoundtrackJukebox.SoundtrackControls();
             SoundtrackJukebox.soundtrackCalled = true;
             SoundtrackJukebox.PlaySoundtrack();
         }

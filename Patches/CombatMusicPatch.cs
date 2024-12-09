@@ -8,6 +8,8 @@ using UnityEngine;
 
 namespace BobbysMusicPlayer.Patches
 {
+    // The following patches each represent a different trigger for the combat state,
+    // but they can never decrease the value of the combat timer.
     public class ShotAtPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
