@@ -82,7 +82,7 @@ namespace BobbysMusicPlayer.Patches
                         trackArray.Add(___audioClip_0[randomInt]);
                     }
                 }
-                Singleton<GUISounds>.Instance.method_4();
+                Singleton<GUISounds>.Instance.method_7();
                 Audio.menuMusicAudioSource.clip = trackArray[trackCounter];
                 Audio.menuMusicAudioSource.Play();
                 trackCounter++;
@@ -98,7 +98,7 @@ namespace BobbysMusicPlayer.Patches
                 {
                     trackCounter = 0;
                 }
-                Singleton<GUISounds>.Instance.method_4();
+                Singleton<GUISounds>.Instance.method_7();
                 Audio.menuMusicAudioSource.clip = trackArray[trackCounter];
                 Audio.menuMusicAudioSource.Play();
                 Plugin.LogSource.LogInfo("Playing " + trackNamesArray[trackCounter]);
@@ -116,12 +116,12 @@ namespace BobbysMusicPlayer.Patches
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(GUISounds), nameof(GUISounds.method_5));
+            return AccessTools.Method(typeof(GUISounds), nameof(GUISounds.method_8));
         }
         [PatchPrefix]
         static bool Prefix()
         {
-            Plugin.LogSource.LogInfo("GUISounds.method_5 called");
+            Plugin.LogSource.LogInfo("GUISounds.method_8 called");
             if (MenuMusicJukebox.menuMusicCoroutine == null)
             {
                 return false;
@@ -141,8 +141,8 @@ namespace BobbysMusicPlayer.Patches
         static bool Prefix(float transitionTime)
         {
             Plugin.LogSource.LogInfo("GUISounds.StopMenuBackgroundMusicWithDelay called");
-            Singleton<GUISounds>.Instance.method_5();
-            MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(transitionTime, new Action(Singleton<GUISounds>.Instance.method_4));
+            Singleton<GUISounds>.Instance.method_8();
+            MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(transitionTime, new Action(Singleton<GUISounds>.Instance.method_7));
             return false;
         }
 

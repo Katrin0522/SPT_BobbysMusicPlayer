@@ -178,7 +178,7 @@ namespace BobbysMusicPlayer
             audiosource.volume = volume;
         }
     }
-    [BepInPlugin("BobbyRenzobbi.MusicPlayer", "BobbysMusicPlayer", "1.2.2")]
+    [BepInPlugin("BobbyRenzobbi.MusicPlayer", "BobbysMusicPlayer", "1.2.3")]
     public class Plugin : BaseUnityPlugin
     {
         public enum ESoundtrackPlaylist
@@ -470,7 +470,7 @@ namespace BobbysMusicPlayer
             }
         }
 
-        private void Awake()
+        internal void Awake()
         {
             LogSource = Logger;
             MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\CustomMenuMusic\\sounds"));
@@ -540,7 +540,7 @@ namespace BobbysMusicPlayer
             UISoundsPatch.LoadUIClips();
         }
 
-        private void Update()
+        internal void Update()
         {
             MenuMusicJukebox.MenuMusicControls();
             if (Singleton<GameWorld>.Instance == null)
