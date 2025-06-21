@@ -103,7 +103,7 @@ namespace BobbysMusicPlayer.Patches
         private static bool Prefix(Vector3 shotPosition)
         {
             Player player = Singleton<GameWorld>.Instance.MainPlayer;
-            float distance = Vector3.Distance(player.Position, shotPosition);
+            float distance = Vector3.Distance(player.PlayerBones.BodyTransform.position, shotPosition);
             if (distance < Plugin.ShotNearCutoff.Value)
             {
                 if (PlayerFiringPatch.playerFired == true)
@@ -134,7 +134,7 @@ namespace BobbysMusicPlayer.Patches
         private static bool Prefix(Vector3 grenadePosition)
         {
             Player player = Singleton<GameWorld>.Instance.MainPlayer;
-            float distance = Vector3.Distance(player.Position, grenadePosition);
+            float distance = Vector3.Distance(player.PlayerBones.BodyTransform.position, grenadePosition);
             if (distance < Plugin.GrenadeNearCutoff.Value)
             {
                 if (PlayerFiringPatch.playerFired == true)
