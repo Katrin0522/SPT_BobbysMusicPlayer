@@ -18,7 +18,8 @@ namespace BobbysMusicPlayer.Patches
             [EEndGameSoundType.ArenaWin] = extractMusicList
         };
         private static AudioClip raidEndClip;
-        private static Plugin plugin = new Plugin();
+        private static BobbysMusicPlayerPlugin bobbysMusicPlayerPlugin = new BobbysMusicPlayerPlugin();
+        //TODO: Move all audio action into separate class
 
         protected override MethodBase GetTargetMethod()
         {
@@ -27,8 +28,8 @@ namespace BobbysMusicPlayer.Patches
 
         private static void LoadNextTrack(EEndGameSoundType soundType)
         {
-            string raidEndTrack = raidEndDictionary[soundType][Plugin.rand.Next(raidEndDictionary[soundType].Count)];
-            raidEndClip = plugin.RequestAudioClip(raidEndTrack);
+            string raidEndTrack = raidEndDictionary[soundType][BobbysMusicPlayerPlugin.rand.Next(raidEndDictionary[soundType].Count)];
+            raidEndClip = bobbysMusicPlayerPlugin.RequestAudioClip(raidEndTrack);
             string trackName = Path.GetFileName(raidEndTrack);
             Logger.LogInfo(trackName + " assigned to " + soundType);
         }

@@ -14,7 +14,8 @@ namespace BobbysMusicPlayer.Patches
         [PatchPrefix]
         static void Prefix()
         {
-            Plugin.InRaid = false;
+            BobbysMusicPlayerPlugin.LogSource.LogWarning("GameWorld Dispose!");
+            BobbysMusicPlayerPlugin.InRaid = false;
         }
     }
 }

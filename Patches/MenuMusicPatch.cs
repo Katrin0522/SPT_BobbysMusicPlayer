@@ -9,6 +9,8 @@ using Comfort.Common;
 using System.Linq;
 using EFT;
 using System;
+using BobbysMusicPlayer.Jukebox;
+using BobbysMusicPlayer.Models;
 
 namespace BobbysMusicPlayer.Patches
 {
@@ -25,34 +27,6 @@ namespace BobbysMusicPlayer.Patches
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(GUISounds), nameof(GUISounds.method_3));
-        }
-        // This method is largely identical to Plugin.LoadAmbientSoundtrackClips
-        internal static async void LoadAudioClips()
-        {
-            float totalLength = 0;
-            HasReloadedAudio = true;
-            if (menuTrackList.IsNullOrEmpty())
-            {
-                return;
-            }
-            trackArray.Clear();
-            trackNamesArray.Clear();
-            trackListToPlay.Clear();
-            trackListToPlay.AddRange(menuTrackList);
-            float targetLength = Plugin.CustomMenuMusicLength.Value * 60f;
-            do
-            {
-                int nextRandom = Plugin.rand.Next(trackListToPlay.Count);
-                string track = trackListToPlay[nextRandom];
-                string trackName = Path.GetFileName(track);
-                Plugin plugin = new Plugin();
-                AudioClip unityAudioClip = await plugin.AsyncRequestAudioClip(track);
-                trackArray.Add(unityAudioClip);
-                trackNamesArray.Add(trackName);
-                trackListToPlay.Remove(track);
-                totalLength += trackArray.Last().length;
-                Plugin.LogSource.LogInfo(trackName + " has been loaded and added to playlist");
-            } while ((totalLength < targetLength) && (!trackListToPlay.IsNullOrEmpty()));
         }
 
         [PatchPrefix]
@@ -71,15 +45,15 @@ namespace BobbysMusicPlayer.Patches
                         // use "Jukebox" controls on the default menu music.
                         
                         int[] randomArray = new int[___audioClip_0.Length];
-                        Plugin.LogSource.LogInfo("Starting 'for loop'");
+                        BobbysMusicPlayerPlugin.LogSource.LogInfo("Starting 'for loop'");
                         for (int i = 0; i < ___audioClip_0.Length - 1; i++)
                         {
-                            Plugin.LogSource.LogInfo("for loop iteration " + i);
+                            BobbysMusicPlayerPlugin.LogSource.LogInfo("for loop iteration " + i);
                             int randomInt;
                             do
                             {
-                                Plugin.LogSource.LogInfo("choosing randomInt");
-                                randomInt = Plugin.rand.Next(___audioClip_0.Length);
+                                BobbysMusicPlayerPlugin.LogSource.LogInfo("choosing randomInt");
+                                randomInt = BobbysMusicPlayerPlugin.rand.Next(___audioClip_0.Length);
                             } while (randomArray.Contains(randomInt));
 
                             randomArray[i] = randomInt;
@@ -108,7 +82,7 @@ namespace BobbysMusicPlayer.Patches
                     Singleton<GUISounds>.Instance.method_7();
                     Audio.menuMusicAudioSource.clip = trackArray[trackCounter];
                     Audio.menuMusicAudioSource.Play();
-                    Plugin.LogSource.LogInfo("Playing " + trackNamesArray[trackCounter]);
+                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Playing " + trackNamesArray[trackCounter]);
                     trackCounter++;
                     MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(
                         Audio.menuMusicAudioSource.clip.length, new Action(Singleton<GUISounds>.Instance.method_3));
@@ -126,17 +100,50 @@ namespace BobbysMusicPlayer.Patches
                 return false;
             }
         }
+        
+        /// <summary>
+        /// This method is largely identical to BobbysMusicPlayerPlugin.LoadAmbientSoundtrackClips
+        /// </summary>
+        internal static async void LoadAudioClips()
+        {
+            float totalLength = 0;
+            HasReloadedAudio = true;
+            if (menuTrackList.IsNullOrEmpty())
+            {
+                return;
+            }
+            trackArray.Clear();
+            trackNamesArray.Clear();
+            trackListToPlay.Clear();
+            trackListToPlay.AddRange(menuTrackList);
+            float targetLength = SettingsModel.Instance.CustomMenuMusicLength.Value * 60f;
+            do
+            {
+                int nextRandom = BobbysMusicPlayerPlugin.rand.Next(trackListToPlay.Count);
+                string track = trackListToPlay[nextRandom];
+                string trackName = Path.GetFileName(track);
+                BobbysMusicPlayerPlugin bobbysMusicPlayerPlugin = new BobbysMusicPlayerPlugin();
+                AudioClip unityAudioClip = await bobbysMusicPlayerPlugin.AsyncRequestAudioClip(track);
+                trackArray.Add(unityAudioClip);
+                trackNamesArray.Add(trackName);
+                trackListToPlay.Remove(track);
+                totalLength += trackArray.Last().length;
+                BobbysMusicPlayerPlugin.LogSource.LogInfo(trackName + " has been loaded and added to playlist");
+            } while ((totalLength < targetLength) && (!trackListToPlay.IsNullOrEmpty()));
+        }
     }
+    
     public class MenuMusicMethod8Patch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(GUISounds), nameof(GUISounds.method_8));
         }
+        
         [PatchPrefix]
         static bool Prefix()
         {
-            Plugin.LogSource.LogInfo("GUISounds.method_8 called");
+            BobbysMusicPlayerPlugin.LogSource.LogInfo("GUISounds.method_8 called");
             if (MenuMusicJukebox.menuMusicCoroutine == null)
             {
                 return false;
@@ -146,20 +153,21 @@ namespace BobbysMusicPlayer.Patches
             return false;
         }
     }
+    
     public class StopMenuMusicPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(GUISounds), nameof(GUISounds.StopMenuBackgroundMusicWithDelay));
         }
+        
         [PatchPrefix]
         static bool Prefix(float transitionTime)
         {
-            Plugin.LogSource.LogInfo("GUISounds.StopMenuBackgroundMusicWithDelay called");
+            BobbysMusicPlayerPlugin.LogSource.LogInfo("GUISounds.StopMenuBackgroundMusicWithDelay called");
             Singleton<GUISounds>.Instance.method_8();
             MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(transitionTime, new Action(Singleton<GUISounds>.Instance.method_7));
             return false;
         }
-
     }
 }

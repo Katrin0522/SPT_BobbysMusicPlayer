@@ -14,7 +14,8 @@ namespace BobbysMusicPlayer.Patches
         [PatchPostfix]
         static void PostFix()
         {
-            Plugin.InRaid = true;
+            BobbysMusicPlayerPlugin.LogSource.LogWarning("GameWorld OnGameStarted!");
+            BobbysMusicPlayerPlugin.InRaid = true;
         }
     }
 }
