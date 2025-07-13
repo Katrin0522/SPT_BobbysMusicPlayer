@@ -209,6 +209,9 @@ namespace BobbysMusicPlayer
         public static ConfigEntry<float> GrenadeNearCutoff { get; set; }
         public static ConfigEntry<float> IndoorMultiplier { get; set; }
         public static ConfigEntry<float> HeadsetMultiplier { get; set; }
+
+        public static bool InRaid { get; set; } = false;
+        
         internal static System.Random rand = new System.Random();
         internal async Task<AudioClip> AsyncRequestAudioClip(string path)
         {
@@ -390,7 +393,6 @@ namespace BobbysMusicPlayer
                 }
             }
         }
-
         private void VolumeSetter()
         {
             // Next two lines are taken from Fontaine's Realism Mod. Credit to him
@@ -421,7 +423,10 @@ namespace BobbysMusicPlayer
                 Audio.AdjustVolume(Audio.combatAudioSource, combatMusicVolume);
             }   
         }
-        // This method gets called once when loading into a raid. It makes sure every AudioClip is ready to play in the raid
+        
+        /// <summary>
+        /// This method gets called once when loading into a raid. It makes sure every AudioClip is ready to play in the raid
+        /// </summary>
         private async void PrepareRaidAudioClips()
         {
             if (!HasStartedLoadingAudio)
@@ -443,6 +448,7 @@ namespace BobbysMusicPlayer
                 }
                 if (!combatMusicTrackList.IsNullOrEmpty())
                 {
+                    LogSource.LogWarning("Load music to combat");
                     // The next 4 lines prevent any issues that could be caused by exiting a raid before the combat timer ends
                     combatTimer = 0f;
                     lerp = 0;
@@ -454,6 +460,7 @@ namespace BobbysMusicPlayer
                         combatMusicClipList.Add(await AsyncRequestAudioClip(track));
                     }
                     Audio.combatAudioSource.clip = combatMusicClipList[rand.Next(combatMusicClipList.Count)];
+                    LogSource.LogWarning($"Music in combat loaded! {Audio.combatAudioSource.clip.length}");
                 }
             }
         }
@@ -524,8 +531,7 @@ namespace BobbysMusicPlayer
             IndoorMultiplier = Config.Bind<float>(generalSettings, "In-Raid Soundtrack volume - Indoor multiplier", 0.75f, new ConfigDescription("When indoors, all in-raid music volume will be multiplied by this value.\nI recommend setting this somewhere between 0 and 1, since the game is much noisier outdoors than indoors", new AcceptableValueRange<float>(0f, 2f)));
             HeadsetMultiplier = Config.Bind<float>(generalSettings, "In-Raid Soundtrack volume - Active headset multiplier", 0.75f, new ConfigDescription("When wearing an active headset, all in-raid music volume will be multiplied by this value.\nI recommend setting this somewhere between 0 and 1, since the game is much noisier without an active headset", new AcceptableValueRange<float>(0f, 2f)));
             environmentDict[EnvironmentType.Outdoor] = 1f;
-
-            LogSource.LogInfo("plugin loaded!");
+            
             new MenuMusicPatch().Enable();
             new RaidEndMusicPatch().Enable();
             new UISoundsPatch().Enable();
@@ -536,14 +542,19 @@ namespace BobbysMusicPlayer
             new GrenadePatch().Enable();
             new MenuMusicMethod5Patch().Enable();
             new StopMenuMusicPatch().Enable();
+            new OnGameWorldStartPatch().Enable();
+            new OnGameWorldDisposePatch().Enable();
             MenuMusicPatch.LoadAudioClips();
             UISoundsPatch.LoadUIClips();
+            
+            
+            LogSource.LogInfo("plugin loaded!");
         }
 
         internal void Update()
         {
             MenuMusicJukebox.MenuMusicControls();
-            if (Singleton<GameWorld>.Instance == null)
+            if (!InRaid)
             {
                 if (!MenuMusicPatch.HasReloadedAudio)
                 {
@@ -555,19 +566,22 @@ namespace BobbysMusicPlayer
                 spawnTrackHasPlayed = false;
                 return;
             }
-            MenuMusicPatch.HasReloadedAudio = false;
+            
+            if (Singleton<GameWorld>.Instance.MainPlayer == null || Singleton<GameWorld>.Instance.MainPlayer.Location == "hideout")
+            {
+                return;
+            }
+            
             if (Audio.soundtrackAudioSource == null)
             {
                 Audio.soundtrackAudioSource = gameObject.AddComponent<AudioSource>();
                 Audio.spawnAudioSource = gameObject.AddComponent<AudioSource>();
                 Audio.combatAudioSource = gameObject.AddComponent<AudioSource>();
-                LogSource.LogInfo("AudioSources added to game");
+                LogSource.LogWarning("AudioSources added to game");
             }
-            if (Singleton<GameWorld>.Instance.MainPlayer == null || Singleton<GameWorld>.Instance.MainPlayer.Location == "hideout")
-            {
-                return;
-            }
+            MenuMusicPatch.HasReloadedAudio = false;
             PrepareRaidAudioClips();
+            
             if (Singleton<AbstractGame>.Instance.Status != GameStatus.Started)
             {
                 return;
