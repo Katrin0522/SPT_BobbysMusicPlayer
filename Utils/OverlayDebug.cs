@@ -1,3 +1,4 @@
+#if DEBUG
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -87,3 +88,4 @@ namespace BobbysMusicPlayer.Utils
         }
     }
 }
+#endif

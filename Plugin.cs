@@ -11,14 +11,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+#if DEBUG
 using BobbysMusicPlayer.Utils;
+#endif
 using UnityEngine;
 using UnityEngine.Networking;
 using HeadsetClass = HeadphonesItemClass;
 
 namespace BobbysMusicPlayer
 {
-    [BepInPlugin("BobbyRenzobbi.MusicPlayer", "BobbysMusicPlayer", "1.2.3")]
+    [BepInPlugin("BobbyRenzobbi.MusicPlayer", "BobbysMusicPlayer", "1.2.4")]
     public class Plugin : BaseUnityPlugin
     {
         public static bool InRaid { get; set; } = false;

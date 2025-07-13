@@ -1,7 +1,10 @@
 using System.Reflection;
-using BobbysMusicPlayer.Utils;
 using EFT;
 using SPT.Reflection.Patching;
+
+#if DEBUG
+using BobbysMusicPlayer.Utils;
+#endif
 
 namespace BobbysMusicPlayer.Patches
 {
