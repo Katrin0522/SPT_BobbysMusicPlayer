@@ -4,7 +4,6 @@ using BobbysMusicPlayer.Patches;
 using Comfort.Common;
 using EFT;
 using EFT.InventoryLogic;
-using EFT.UI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BobbysMusicPlayer.Jukebox;
 using BobbysMusicPlayer.Models;
+using BobbysMusicPlayer.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 using HeadsetClass = HeadphonesItemClass;
@@ -33,7 +33,7 @@ namespace BobbysMusicPlayer
         private static float soundtrackVolume = 0f;
         private static float spawnMusicVolume = 0f;
         private static float combatMusicVolume = 0f;
-        internal static float headsetMultiplier = 1f;
+        private static float headsetMultiplier = 1f;
         
         internal static bool HasFinishedLoadingAudio = false;
         private static bool HasStartedLoadingAudio = false;
@@ -132,7 +132,6 @@ namespace BobbysMusicPlayer
         {
             MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\CustomMenuMusic\\sounds"));
             
-            //:Bobby hint:
             //This if statement exists just in case some people install outdated music packs by mistake
             if (MenuMusicPatch.menuTrackList.IsNullOrEmpty() && Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\CustomMenuMusic\\sounds"))
             {
@@ -433,12 +432,5 @@ namespace BobbysMusicPlayer
         {
             audiosource.volume = volume;
         }
-    }
-    
-    public enum ESoundtrackPlaylist
-    {
-        MapSpecificPlaylistOnly,
-        CombinedPlaylists,
-        DefaultPlaylistOnly
     }
 }
