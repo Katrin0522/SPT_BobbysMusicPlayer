@@ -53,6 +53,8 @@ namespace BobbysMusicPlayer.Utils
             
             _overlayText.text = $"InRaid -> {Plugin.InRaid}\n" +
                                 $"\n" +
+                                $"Combat Timer -> {Plugin.combatTimer}" + 
+                                $"\n" +
                                 $"[CombatLerp Volume Data]\n" +
                                 $"CombatAudioSource Volume -> {Mathf.Lerp(0f, Plugin.combatMusicVolume, Plugin.lerp)}\n" +
                                 $"SoundtrackAudioSource Volume -> {Mathf.Lerp(Plugin.soundtrackVolume, Plugin.AmbientCombatMultiplier.Value*Plugin.soundtrackVolume, Plugin.lerp)}\n" +
@@ -67,6 +69,7 @@ namespace BobbysMusicPlayer.Utils
                                 $"CombatAudioSource isPlay? -> {Audio.combatAudioSource?.isPlaying}\n" +
                                 $"SoundtrackAudioSource isPlay? -> {Audio.soundtrackAudioSource?.isPlaying}\n" +
                                 $"SpawnAudioSource isPlay? -> {Audio.spawnAudioSource?.isPlaying}\n";
+                                
         }
 
         public void SetOverlayPosition(Vector2 anchoredPosition)
