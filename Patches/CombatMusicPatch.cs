@@ -31,6 +31,7 @@ namespace BobbysMusicPlayer.Patches
             }
         }
     }
+    
     public class PlayerFiringPatch : ModulePatch
     {
         internal static bool playerFired = false;
@@ -60,6 +61,7 @@ namespace BobbysMusicPlayer.Patches
             return true;
         }
     }
+    
     public class DamageTakenPatch : ModulePatch
     {
         private static List<string> damageTypeList = new List<string>()
@@ -93,6 +95,7 @@ namespace BobbysMusicPlayer.Patches
             return true;
         }
     }
+    
     public class ShotFiredNearPatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
@@ -124,6 +127,7 @@ namespace BobbysMusicPlayer.Patches
             return true;
         }
     }
+    
     public class GrenadePatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
