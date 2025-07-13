@@ -1,4 +1,5 @@
 using System.Reflection;
+using BobbysMusicPlayer.Utils;
 using EFT;
 using SPT.Reflection.Patching;
 
@@ -14,6 +15,9 @@ namespace BobbysMusicPlayer.Patches
         [PatchPostfix]
         static void PostFix()
         {
+#if DEBUG
+            OverlayDebug.Instance.Enable();
+#endif
             Plugin.InRaid = true;
         }
     }

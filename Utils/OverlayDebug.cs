@@ -17,6 +17,7 @@ namespace BobbysMusicPlayer.Utils
             _instance = this;
             
             _overlay = new GameObject("[BobbysMusicPlayer] Overlay", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            DontDestroyOnLoad(_overlay);
             var canvas = _overlay.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 100;
@@ -42,13 +43,29 @@ namespace BobbysMusicPlayer.Utils
             rectTransform.sizeDelta = new Vector2(800, 200);
             
             SetOverlayPosition(new Vector2(Plugin.PositionXDebug.Value, Plugin.PositionYDebug.Value));
+            UpdateOverlay();
         }
         
         public void UpdateOverlay()
         {
             if (_overlayText == null) return;
             
-            _overlayText.text = $"{Plugin.InRaid}";
+            _overlayText.text = $"InRaid -> {Plugin.InRaid}\n" +
+                                $"\n" +
+                                $"[CombatLerp Volume Data]\n" +
+                                $"CombatAudioSource Volume -> {Mathf.Lerp(0f, Plugin.combatMusicVolume, Plugin.lerp)}\n" +
+                                $"SoundtrackAudioSource Volume -> {Mathf.Lerp(Plugin.soundtrackVolume, Plugin.AmbientCombatMultiplier.Value*Plugin.soundtrackVolume, Plugin.lerp)}\n" +
+                                $"SpawnAudioSource Volume -> {Mathf.Lerp(Plugin.spawnMusicVolume, Plugin.AmbientCombatMultiplier.Value*Plugin.spawnMusicVolume, Plugin.lerp)}\n" +
+                                $"\n" +
+                                $"[VolumeSetter Volume Data]\n" +
+                                $"CombatAudioSource Volume -> {Plugin.combatMusicVolume}\n" +
+                                $"SoundtrackAudioSource Volume -> {Plugin.soundtrackVolume}\n" +
+                                $"SpawnAudioSource Volume -> {Plugin.spawnMusicVolume}\n" +
+                                $"\n" +
+                                $"[AudioSource is playing?]\n" +
+                                $"CombatAudioSource isPlay? -> {Audio.combatAudioSource?.isPlaying}\n" +
+                                $"SoundtrackAudioSource isPlay? -> {Audio.soundtrackAudioSource?.isPlaying}\n" +
+                                $"SpawnAudioSource isPlay? -> {Audio.spawnAudioSource?.isPlaying}\n";
         }
 
         public void SetOverlayPosition(Vector2 anchoredPosition)
