@@ -127,7 +127,7 @@ namespace BobbysMusicPlayer.Patches
             }
         }
     }
-    public class MenuMusicMethod5Patch : ModulePatch
+    public class MenuMusicMethod8Patch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {

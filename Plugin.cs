@@ -540,7 +540,7 @@ namespace BobbysMusicPlayer
             new DamageTakenPatch().Enable();
             new ShotFiredNearPatch().Enable();
             new GrenadePatch().Enable();
-            new MenuMusicMethod5Patch().Enable();
+            new MenuMusicMethod8Patch().Enable();
             new StopMenuMusicPatch().Enable();
             new OnGameWorldStartPatch().Enable();
             new OnGameWorldDisposePatch().Enable();
