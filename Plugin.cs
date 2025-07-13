@@ -439,8 +439,6 @@ namespace BobbysMusicPlayer
             MenuMusicPatch.LoadAudioClips();
             UISoundsPatch.LoadUIClips();
             
-            OverlayDebug.Instance.Enable();
-            
             LogSource.LogInfo("plugin loaded!");
         }
 
