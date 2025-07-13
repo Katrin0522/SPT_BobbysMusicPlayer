@@ -18,174 +18,6 @@ using HeadsetClass = HeadphonesItemClass;
 
 namespace BobbysMusicPlayer
 {
-    #region OTHER
-    
-    public class MenuMusicJukebox : MonoBehaviour
-    {
-        internal static Coroutine menuMusicCoroutine;
-        private static bool paused = false;
-        private static float pausedTime = 0f;
-        // This method is responsible for handling the "Jukebox" controls of the Main Menu
-        public static void MenuMusicControls()
-        {
-            if (!SoundtrackJukebox.soundtrackCalled && Audio.menuMusicAudioSource != null)
-            {
-                if (Input.GetKeyDown(Plugin.PauseTrack.Value.MainKey) && Audio.menuMusicAudioSource.isPlaying)
-                {
-                    Audio.menuMusicAudioSource.Pause();
-                    StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                    pausedTime = Audio.menuMusicAudioSource.clip.length - Audio.menuMusicAudioSource.time;
-                    paused = true;
-                }
-                else if (Input.GetKeyDown(Plugin.PauseTrack.Value.MainKey) && paused)
-                {
-                    Audio.menuMusicAudioSource.UnPause();
-                    menuMusicCoroutine = StaticManager.Instance.WaitSeconds(pausedTime, new Action(Singleton<GUISounds>.Instance.method_3));
-                    paused = false;
-                }
-                if (Input.GetKeyDown(Plugin.RestartTrack.Value.MainKey))
-                {
-                    Audio.menuMusicAudioSource.Stop();
-                    if (MenuMusicPatch.trackCounter != 0)
-                    {
-                        MenuMusicPatch.trackCounter--;
-                    }
-                    else
-                    {
-                        MenuMusicPatch.trackCounter = MenuMusicPatch.trackArray.Count - 1;
-                    }
-                    StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                    paused = false;
-                    Singleton<GUISounds>.Instance.method_3();
-                }
-                if (Input.GetKeyDown(Plugin.PreviousTrack.Value.MainKey))
-                {
-                    Audio.menuMusicAudioSource.Stop();
-                    MenuMusicPatch.trackCounter -= 2;
-                    if (MenuMusicPatch.trackCounter < 0)
-                    {
-                        MenuMusicPatch.trackCounter = MenuMusicPatch.trackArray.Count + (MenuMusicPatch.trackCounter);
-                    }
-                    StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                    paused = false;
-                    Singleton<GUISounds>.Instance.method_3();
-                }
-                if (Input.GetKeyDown(Plugin.SkipTrack.Value.MainKey))
-                {
-                    Audio.menuMusicAudioSource.Stop();
-                    StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                    paused = false;
-                    Singleton<GUISounds>.Instance.method_3();
-                }
-            }
-        }
-    }
-    
-    public class SoundtrackJukebox : MonoBehaviour
-    {
-        internal static bool soundtrackCalled = false;
-        internal static bool inRaid = false; 
-        private static int trackCounter = 0;
-        internal static Coroutine soundtrackCoroutine;
-        private static bool paused = false;
-        private static float pausedTime = 0f;
-        public static void PlaySoundtrack()
-        {
-            if (!soundtrackCalled || Audio.soundtrackAudioSource.isPlaying || paused || Audio.spawnAudioSource.isPlaying || Plugin.ambientTrackArray.IsNullOrEmpty() || !Plugin.HasFinishedLoadingAudio)
-            {
-                return;
-            }
-            if (Plugin.ambientTrackArray.Count == 1)
-            {
-                trackCounter = 0;
-            }
-            Audio.soundtrackAudioSource.clip = Plugin.ambientTrackArray[trackCounter];
-            Audio.soundtrackAudioSource.Play();
-            Plugin.LogSource.LogInfo("Playing " + Plugin.ambientTrackNamesArray[trackCounter]);
-            trackCounter++;
-            soundtrackCoroutine = StaticManager.Instance.WaitSeconds(Audio.soundtrackAudioSource.clip.length, new Action(PlaySoundtrack));
-            if (trackCounter >= Plugin.ambientTrackArray.Count)
-            {
-                trackCounter = 0;
-            }
-        }
-        
-        // This method is responsible for handling the "Jukebox" controls of the Ambient Soundtrack
-        public static void SoundtrackControls()
-        {
-            if (Audio.spawnAudioSource.isPlaying)
-            {
-                return;
-            }
-            if (Input.GetKeyDown(Plugin.PauseTrack.Value.MainKey) && Audio.soundtrackAudioSource.isPlaying)
-            {
-                Audio.soundtrackAudioSource.Pause();
-                StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
-                pausedTime = Audio.soundtrackAudioSource.clip.length - Audio.soundtrackAudioSource.time;
-                paused = true;
-            }
-            else if (Input.GetKeyDown(Plugin.PauseTrack.Value.MainKey) && paused)
-            {
-                Audio.soundtrackAudioSource.UnPause();
-                soundtrackCoroutine = StaticManager.Instance.WaitSeconds(pausedTime, new Action(PlaySoundtrack));
-                paused = false;
-            }
-            if (Input.GetKeyDown(Plugin.RestartTrack.Value.MainKey))
-            {
-                Audio.soundtrackAudioSource.Stop();
-                if (trackCounter != 0)
-                {
-                    trackCounter--;
-                }
-                else
-                {
-                    trackCounter = Plugin.ambientTrackArray.Count - 1;
-                }
-                StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
-                paused = false;
-                PlaySoundtrack();
-            }
-            if (Input.GetKeyDown(Plugin.PreviousTrack.Value.MainKey))
-            {
-                Audio.soundtrackAudioSource.Stop();
-                trackCounter -= 2;
-                if (trackCounter < 0)
-                {
-                    trackCounter = Plugin.ambientTrackArray.Count + (trackCounter);
-                }
-                StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
-                paused = false;
-                PlaySoundtrack();
-            }
-            if (Input.GetKeyDown(Plugin.SkipTrack.Value.MainKey))
-            {
-                Audio.soundtrackAudioSource.Stop();
-                StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
-                paused = false;
-                PlaySoundtrack();
-            }
-        }
-    }
-
-    [RequireComponent(typeof(AudioSource))]
-    public class Audio : MonoBehaviour
-    {
-        public static AudioSource soundtrackAudioSource;
-        public static AudioSource spawnAudioSource;
-        public static AudioSource combatAudioSource;
-        public static AudioSource menuMusicAudioSource;
-        public static void SetClip(AudioSource audiosource, AudioClip clip)
-        {
-            audiosource.clip = clip;
-        }
-        public static void AdjustVolume(AudioSource audiosource, float volume)
-        {
-            audiosource.volume = volume;
-        }
-    }
-    
-    #endregion
-    
     [BepInPlugin("BobbyRenzobbi.MusicPlayer", "BobbysMusicPlayer", "1.2.3")]
     public class Plugin : BaseUnityPlugin
     {
@@ -226,8 +58,6 @@ namespace BobbysMusicPlayer
         public static ConfigEntry<float> HeadsetMultiplier { get; set; }
         
         #endregion
-
-        #region Other
         
         public enum ESoundtrackPlaylist
         {
@@ -336,8 +166,6 @@ namespace BobbysMusicPlayer
         internal static List<string> ambientTrackNamesArray = new List<string>();
         private static bool spawnTrackHasPlayed = false;
         
-        #endregion
-        
         internal void Awake()
         {
             LogSource = Logger;
@@ -369,8 +197,6 @@ namespace BobbysMusicPlayer
             }
             
             #endregion
-
-            #region ConfigInit
             
             string generalSettings = "1. General Settings";
             string ambientSoundtrackSettings = "3. Ambient Soundtrack Settings";
@@ -397,7 +223,6 @@ namespace BobbysMusicPlayer
                 OverlayDebug.Instance.SetFontSize(FontSizeDebug.Value);
             };
 #endif
-            
             SoundtrackVolume = Config.Bind<float>(ambientSoundtrackSettings, "Ambient Soundtrack volume", 0.05f, new ConfigDescription("Volume of the Ambient Soundtrack", new AcceptableValueRange<float>(0f, 1f), new ConfigurationManagerAttributes { Order = 3 }));
             SpawnMusicVolume = Config.Bind<float>(ambientSoundtrackSettings, "Spawn music volume", 0.05f, new ConfigDescription("Volume of the music played on spawn", new AcceptableValueRange<float>(0f, 1f), new ConfigurationManagerAttributes { Order = 2 }));
             SoundtrackPlaylist = Config.Bind<ESoundtrackPlaylist>(ambientSoundtrackSettings, "Ambient Soundtrack playlist selection", ESoundtrackPlaylist.CombinedPlaylists, new ConfigDescription("- Map Specific Playlist Only: Playlist will only use music from the map's soundtrack folder. If it is empty, the default soundtrack folder will be used instead.\n- Combined Playlists: Playlist will combine music from the map's soundtrack folder and the default soundtrack folder.\n- Default Playlist Only: Playlist will only use music from the default soundtrack folder.", null, new ConfigurationManagerAttributes { Order = 1 }));
@@ -422,8 +247,6 @@ namespace BobbysMusicPlayer
             HeadsetMultiplier = Config.Bind<float>(generalSettings, "In-Raid Soundtrack volume - Active headset multiplier", 0.75f, new ConfigDescription("When wearing an active headset, all in-raid music volume will be multiplied by this value.\nI recommend setting this somewhere between 0 and 1, since the game is much noisier without an active headset", new AcceptableValueRange<float>(0f, 2f)));
             environmentDict[EnvironmentType.Outdoor] = 1f;
             
-            #endregion
-            
             new MenuMusicPatch().Enable();
             new RaidEndMusicPatch().Enable();
             new UISoundsPatch().Enable();
@@ -444,7 +267,9 @@ namespace BobbysMusicPlayer
 
         internal void Update()
         {
+#if DEBUG
             OverlayDebug.Instance.UpdateOverlay();
+#endif
             MenuMusicJukebox.MenuMusicControls();
             if (!InRaid)
             {
@@ -655,6 +480,170 @@ namespace BobbysMusicPlayer
                 LogSource.LogInfo("spawnAudioSource playing");
                 spawnTrackHasPlayed = true;
             }
+        }
+    }
+    
+    public class MenuMusicJukebox : MonoBehaviour
+    {
+        internal static Coroutine menuMusicCoroutine;
+        private static bool paused = false;
+        private static float pausedTime = 0f;
+        // This method is responsible for handling the "Jukebox" controls of the Main Menu
+        public static void MenuMusicControls()
+        {
+            if (!SoundtrackJukebox.soundtrackCalled && Audio.menuMusicAudioSource != null)
+            {
+                if (Input.GetKeyDown(Plugin.PauseTrack.Value.MainKey) && Audio.menuMusicAudioSource.isPlaying)
+                {
+                    Audio.menuMusicAudioSource.Pause();
+                    StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
+                    pausedTime = Audio.menuMusicAudioSource.clip.length - Audio.menuMusicAudioSource.time;
+                    paused = true;
+                }
+                else if (Input.GetKeyDown(Plugin.PauseTrack.Value.MainKey) && paused)
+                {
+                    Audio.menuMusicAudioSource.UnPause();
+                    menuMusicCoroutine = StaticManager.Instance.WaitSeconds(pausedTime, new Action(Singleton<GUISounds>.Instance.method_3));
+                    paused = false;
+                }
+                if (Input.GetKeyDown(Plugin.RestartTrack.Value.MainKey))
+                {
+                    Audio.menuMusicAudioSource.Stop();
+                    if (MenuMusicPatch.trackCounter != 0)
+                    {
+                        MenuMusicPatch.trackCounter--;
+                    }
+                    else
+                    {
+                        MenuMusicPatch.trackCounter = MenuMusicPatch.trackArray.Count - 1;
+                    }
+                    StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
+                    paused = false;
+                    Singleton<GUISounds>.Instance.method_3();
+                }
+                if (Input.GetKeyDown(Plugin.PreviousTrack.Value.MainKey))
+                {
+                    Audio.menuMusicAudioSource.Stop();
+                    MenuMusicPatch.trackCounter -= 2;
+                    if (MenuMusicPatch.trackCounter < 0)
+                    {
+                        MenuMusicPatch.trackCounter = MenuMusicPatch.trackArray.Count + (MenuMusicPatch.trackCounter);
+                    }
+                    StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
+                    paused = false;
+                    Singleton<GUISounds>.Instance.method_3();
+                }
+                if (Input.GetKeyDown(Plugin.SkipTrack.Value.MainKey))
+                {
+                    Audio.menuMusicAudioSource.Stop();
+                    StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
+                    paused = false;
+                    Singleton<GUISounds>.Instance.method_3();
+                }
+            }
+        }
+    }
+    
+    public class SoundtrackJukebox : MonoBehaviour
+    {
+        internal static bool soundtrackCalled = false;
+        internal static bool inRaid = false; 
+        private static int trackCounter = 0;
+        internal static Coroutine soundtrackCoroutine;
+        private static bool paused = false;
+        private static float pausedTime = 0f;
+        public static void PlaySoundtrack()
+        {
+            if (!soundtrackCalled || Audio.soundtrackAudioSource.isPlaying || paused || Audio.spawnAudioSource.isPlaying || Plugin.ambientTrackArray.IsNullOrEmpty() || !Plugin.HasFinishedLoadingAudio)
+            {
+                return;
+            }
+            if (Plugin.ambientTrackArray.Count == 1)
+            {
+                trackCounter = 0;
+            }
+            Audio.soundtrackAudioSource.clip = Plugin.ambientTrackArray[trackCounter];
+            Audio.soundtrackAudioSource.Play();
+            Plugin.LogSource.LogInfo("Playing " + Plugin.ambientTrackNamesArray[trackCounter]);
+            trackCounter++;
+            soundtrackCoroutine = StaticManager.Instance.WaitSeconds(Audio.soundtrackAudioSource.clip.length, new Action(PlaySoundtrack));
+            if (trackCounter >= Plugin.ambientTrackArray.Count)
+            {
+                trackCounter = 0;
+            }
+        }
+        
+        // This method is responsible for handling the "Jukebox" controls of the Ambient Soundtrack
+        public static void SoundtrackControls()
+        {
+            if (Audio.spawnAudioSource.isPlaying)
+            {
+                return;
+            }
+            if (Input.GetKeyDown(Plugin.PauseTrack.Value.MainKey) && Audio.soundtrackAudioSource.isPlaying)
+            {
+                Audio.soundtrackAudioSource.Pause();
+                StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
+                pausedTime = Audio.soundtrackAudioSource.clip.length - Audio.soundtrackAudioSource.time;
+                paused = true;
+            }
+            else if (Input.GetKeyDown(Plugin.PauseTrack.Value.MainKey) && paused)
+            {
+                Audio.soundtrackAudioSource.UnPause();
+                soundtrackCoroutine = StaticManager.Instance.WaitSeconds(pausedTime, new Action(PlaySoundtrack));
+                paused = false;
+            }
+            if (Input.GetKeyDown(Plugin.RestartTrack.Value.MainKey))
+            {
+                Audio.soundtrackAudioSource.Stop();
+                if (trackCounter != 0)
+                {
+                    trackCounter--;
+                }
+                else
+                {
+                    trackCounter = Plugin.ambientTrackArray.Count - 1;
+                }
+                StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
+                paused = false;
+                PlaySoundtrack();
+            }
+            if (Input.GetKeyDown(Plugin.PreviousTrack.Value.MainKey))
+            {
+                Audio.soundtrackAudioSource.Stop();
+                trackCounter -= 2;
+                if (trackCounter < 0)
+                {
+                    trackCounter = Plugin.ambientTrackArray.Count + (trackCounter);
+                }
+                StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
+                paused = false;
+                PlaySoundtrack();
+            }
+            if (Input.GetKeyDown(Plugin.SkipTrack.Value.MainKey))
+            {
+                Audio.soundtrackAudioSource.Stop();
+                StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
+                paused = false;
+                PlaySoundtrack();
+            }
+        }
+    }
+
+    [RequireComponent(typeof(AudioSource))]
+    public class Audio : MonoBehaviour
+    {
+        public static AudioSource soundtrackAudioSource;
+        public static AudioSource spawnAudioSource;
+        public static AudioSource combatAudioSource;
+        public static AudioSource menuMusicAudioSource;
+        public static void SetClip(AudioSource audiosource, AudioClip clip)
+        {
+            audiosource.clip = clip;
+        }
+        public static void AdjustVolume(AudioSource audiosource, float volume)
+        {
+            audiosource.volume = volume;
         }
     }
 }
