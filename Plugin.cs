@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using BobbysMusicPlayer.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 using HeadsetClass = HeadphonesItemClass;
@@ -187,6 +188,15 @@ namespace BobbysMusicPlayer
             CombinedPlaylists,
             DefaultPlaylistOnly
         }
+#if DEBUG
+        #region Debug
+        
+        public static ConfigEntry<float> PositionXDebug { get; set; }
+        public static ConfigEntry<float> PositionYDebug { get; set; }
+        public static ConfigEntry<int> FontSizeDebug { get; set; }
+        
+        #endregion
+#endif
         public static ConfigEntry<float> SoundtrackVolume { get; set; }
         public static ConfigEntry<float> SpawnMusicVolume { get; set; }
         public static ConfigEntry<int> SoundtrackLength { get; set; }
@@ -311,6 +321,26 @@ namespace BobbysMusicPlayer
         internal static bool HasFinishedLoadingAudio = false;
         internal static List<string> ambientTrackNamesArray = new List<string>();
         private static bool spawnTrackHasPlayed = false;
+#if DEBUG
+            PositionXDebug = Config.Bind<float>("DEBUG", "PositionXDebug", 10f, new ConfigDescription("PositionXDebug", new AcceptableValueRange<float>(-2000f, 2000f), new ConfigurationManagerAttributes { Order = 99 }));
+            PositionYDebug = Config.Bind<float>("DEBUG", "PositionYDebug", -10f, new ConfigDescription("PositionYDebug", new AcceptableValueRange<float>(-2000f, 2000f), new ConfigurationManagerAttributes { Order = 99 }));
+            FontSizeDebug = Config.Bind<int>("DEBUG", "FontSizeDebug", 28, new ConfigDescription("FontSizeDebug", new AcceptableValueRange<int>(0, 200), new ConfigurationManagerAttributes { Order = 99 }));
+            
+            PositionXDebug.SettingChanged += (_, __) =>
+            {
+                OverlayDebug.Instance.SetOverlayPosition(new Vector2(PositionXDebug.Value, PositionYDebug.Value));
+            };
+			
+            PositionYDebug.SettingChanged += (_, __) =>
+            {
+                OverlayDebug.Instance.SetOverlayPosition(new Vector2(PositionXDebug.Value, PositionYDebug.Value));
+            };
+
+            FontSizeDebug.SettingChanged += (_, __) =>
+            {
+                OverlayDebug.Instance.SetFontSize(FontSizeDebug.Value);
+            };
+#endif
 
         private async void LoadAmbientSoundtrackClips()
         {
