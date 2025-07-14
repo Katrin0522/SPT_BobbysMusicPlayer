@@ -33,7 +33,7 @@ namespace BobbysMusicPlayer.Patches
             }
             
             // The sound that plays in game will be a randomly selected sound from the corresponding folder
-            __result = audioClipArray[BobbysMusicPlayerPlugin.rand.Next(audioClipArray.Count)];
+            __result = audioClipArray[BobbysMusicPlayerPlugin.Random.Next(audioClipArray.Count)];
             return false;
         }
         

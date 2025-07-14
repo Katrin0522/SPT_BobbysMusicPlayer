@@ -28,7 +28,7 @@ namespace BobbysMusicPlayer.Patches
 
         private static void LoadNextTrack(EEndGameSoundType soundType)
         {
-            string raidEndTrack = raidEndDictionary[soundType][BobbysMusicPlayerPlugin.rand.Next(raidEndDictionary[soundType].Count)];
+            string raidEndTrack = raidEndDictionary[soundType][BobbysMusicPlayerPlugin.Random.Next(raidEndDictionary[soundType].Count)];
             raidEndClip = bobbysMusicPlayerPlugin.RequestAudioClip(raidEndTrack);
             string trackName = Path.GetFileName(raidEndTrack);
             Logger.LogInfo(trackName + " assigned to " + soundType);

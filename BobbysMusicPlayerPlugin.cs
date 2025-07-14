@@ -23,7 +23,7 @@ namespace BobbysMusicPlayer
         private SettingsModel _settings;
         
         internal static ManualLogSource LogSource;
-        internal static System.Random rand = new();
+        internal static System.Random Random = new();
         
         public static bool InRaid { get; set; } = false;
         
@@ -234,7 +234,7 @@ namespace BobbysMusicPlayer
             }
             while ((totalLength < targetLength) && (!ambientTrackListToPlay.IsNullOrEmpty()))
             {
-                int nextRandom = rand.Next(ambientTrackListToPlay.Count);
+                int nextRandom = Random.Next(ambientTrackListToPlay.Count);
                 string track = ambientTrackListToPlay[nextRandom];
                 string trackName = Path.GetFileName(track);
                 AudioClip unityAudioClip = await AsyncRequestAudioClip(track);
@@ -294,7 +294,7 @@ namespace BobbysMusicPlayer
                             Audio.combatAudioSource.loop = false;
                             Audio.combatAudioSource.Stop();
                             // The combat AudioSource's clip will be randomly selected each time the combat music stops
-                            Audio.combatAudioSource.clip = combatMusicClipList[rand.Next(combatMusicClipList.Count)];
+                            Audio.combatAudioSource.clip = combatMusicClipList[Random.Next(combatMusicClipList.Count)];
                         }
                     }
                 }
@@ -370,7 +370,7 @@ namespace BobbysMusicPlayer
                     {
                         combatMusicClipList.Add(await AsyncRequestAudioClip(track));
                     }
-                    Audio.combatAudioSource.clip = combatMusicClipList[rand.Next(combatMusicClipList.Count)];
+                    Audio.combatAudioSource.clip = combatMusicClipList[Random.Next(combatMusicClipList.Count)];
                     LogSource.LogWarning($"Music in combat loaded! {Audio.combatAudioSource.clip.length}");
                 }
             }
@@ -383,7 +383,7 @@ namespace BobbysMusicPlayer
         {
             if (!spawnTrackHasPlayed && !spawnTrackClipList.IsNullOrEmpty())
             {
-                Audio.spawnAudioSource.clip = spawnTrackClipList[rand.Next(spawnTrackClipList.Count)];
+                Audio.spawnAudioSource.clip = spawnTrackClipList[Random.Next(spawnTrackClipList.Count)];
                 LogSource.LogInfo("spawnAudioSource.clip assigned to spawnTrackClip");
                 Audio.spawnAudioSource.Play();
                 LogSource.LogInfo("spawnAudioSource playing");

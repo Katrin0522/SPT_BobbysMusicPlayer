@@ -53,7 +53,7 @@ namespace BobbysMusicPlayer.Patches
                             do
                             {
                                 BobbysMusicPlayerPlugin.LogSource.LogInfo("choosing randomInt");
-                                randomInt = BobbysMusicPlayerPlugin.rand.Next(___audioClip_0.Length);
+                                randomInt = BobbysMusicPlayerPlugin.Random.Next(___audioClip_0.Length);
                             } while (randomArray.Contains(randomInt));
 
                             randomArray[i] = randomInt;
@@ -119,7 +119,7 @@ namespace BobbysMusicPlayer.Patches
             float targetLength = SettingsModel.Instance.CustomMenuMusicLength.Value * 60f;
             do
             {
-                int nextRandom = BobbysMusicPlayerPlugin.rand.Next(trackListToPlay.Count);
+                int nextRandom = BobbysMusicPlayerPlugin.Random.Next(trackListToPlay.Count);
                 string track = trackListToPlay[nextRandom];
                 string trackName = Path.GetFileName(track);
                 BobbysMusicPlayerPlugin bobbysMusicPlayerPlugin = new BobbysMusicPlayerPlugin();
