@@ -14,11 +14,10 @@ using BobbysMusicPlayer.Models;
 using BobbysMusicPlayer.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
-using HeadsetClass = HeadphonesItemClass;
 
 namespace BobbysMusicPlayer
 {
-    [BepInPlugin("BobbyRenzobbi.MusicPlayer", "BobbysMusicPlayer", "1.3.0")]
+    [BepInPlugin("BobbyRenzobbi.MusicPlayer", "BobbysMusicPlayer", "1.2.4")]
     public class BobbysMusicPlayerPlugin : BaseUnityPlugin
     {
         private SettingsModel _settings;
@@ -28,18 +27,18 @@ namespace BobbysMusicPlayer
         
         public static bool InRaid { get; set; } = false;
         
-        private static float lerp = 0f;
+        internal static float lerp = 0f;
         internal static float combatTimer = 0f;
-        private static float soundtrackVolume = 0f;
-        private static float spawnMusicVolume = 0f;
-        private static float combatMusicVolume = 0f;
+        internal static float soundtrackVolume = 0f;
+        internal static float spawnMusicVolume = 0f;
+        internal static float combatMusicVolume = 0f;
         private static float headsetMultiplier = 1f;
         
         internal static bool HasFinishedLoadingAudio = false;
         private static bool HasStartedLoadingAudio = false;
         private static bool spawnTrackHasPlayed = false;
         
-        private static Dictionary<EnvironmentType, float> environmentDict = new Dictionary<EnvironmentType, float>();
+        
         
         private static List<string> combatMusicTrackList = new List<string>();
         private static List<string> ambientTrackListToPlay = new List<string>();
@@ -62,7 +61,7 @@ namespace BobbysMusicPlayer
             //Moved music loading into a separate method
             LoadMusic();
             
-            environmentDict[EnvironmentType.Outdoor] = 1f;
+            GlobalData.EnvironmentDict[EnvironmentType.Indoor] = _settings.IndoorMultiplier.Value;
             
             new MenuMusicPatch().Enable();
             new RaidEndMusicPatch().Enable();
@@ -169,21 +168,8 @@ namespace BobbysMusicPlayer
         internal async Task<AudioClip> AsyncRequestAudioClip(string path)
         {
             string extension = Path.GetExtension(path);
-            Dictionary<string, AudioType> audioType = new Dictionary<string, AudioType>
-            {
-                [".wav"] = AudioType.WAV,
-                [".ogg"] = AudioType.OGGVORBIS,
-                [".mp2"] = AudioType.MPEG,
-                [".mp3"] = AudioType.MPEG,
-                [".aiff"] = AudioType.AIFF,
-                [".s3m"] = AudioType.S3M,
-                [".it"] = AudioType.IT,
-                [".mod"] = AudioType.MOD,
-                [".xm"] = AudioType.XM,
-                [".xma"] = AudioType.XMA,
-                [".vag"] = AudioType.VAG
-            };
-            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, audioType[extension.ToLower()]);
+            
+            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, GlobalData.AudioTypes[extension.ToLower()]);
             UnityWebRequestAsyncOperation sendWeb = uwr.SendWebRequest();
 
             while (!sendWeb.isDone)
@@ -207,21 +193,8 @@ namespace BobbysMusicPlayer
         internal AudioClip RequestAudioClip(string path)
         {
             string extension = Path.GetExtension(path);
-            Dictionary<string, AudioType> audioType = new Dictionary<string, AudioType>
-            {
-                [".wav"] = AudioType.WAV,
-                [".ogg"] = AudioType.OGGVORBIS,
-                [".mp2"] = AudioType.MPEG,
-                [".mp3"] = AudioType.MPEG,
-                [".aiff"] = AudioType.AIFF,
-                [".s3m"] = AudioType.S3M,
-                [".it"] = AudioType.IT,
-                [".mod"] = AudioType.MOD,
-                [".xm"] = AudioType.XM,
-                [".xma"] = AudioType.XMA,
-                [".vag"] = AudioType.VAG
-            };
-            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, audioType[extension.ToLower()]);
+            
+            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, GlobalData.AudioTypes[extension.ToLower()]);
             UnityWebRequestAsyncOperation sendWeb = uwr.SendWebRequest();
 
             while (!sendWeb.isDone)
@@ -268,6 +241,7 @@ namespace BobbysMusicPlayer
                 ambientTrackArray.Add(unityAudioClip);
                 ambientTrackNamesArray.Add(trackName);
                 ambientTrackListToPlay.Remove(track);
+                
                 // Adding the length of each track to totalLength makes sure that the mod loads the minimum number of random tracks to meet the target length.
                 totalLength += ambientTrackArray.Last().length;
                 LogSource.LogInfo(trackName + " has been loaded and added to playlist");
@@ -334,7 +308,7 @@ namespace BobbysMusicPlayer
         {
             // Next two lines are taken from Fontaine's Realism Mod. Credit to him
             CompoundItem headwear = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Headwear).ContainedItem as CompoundItem;
-            HeadsetClass headset = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Earpiece).ContainedItem as HeadsetClass ?? ((headwear != null) ? headwear.GetAllItemsFromCollection().OfType<HeadsetClass>().FirstOrDefault<HeadsetClass>() : null);
+            HeadphonesItemClass headset = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Earpiece).ContainedItem as HeadphonesItemClass ?? ((headwear != null) ? headwear.GetAllItemsFromCollection().OfType<HeadphonesItemClass>().FirstOrDefault<HeadphonesItemClass>() : null);
             if (headset != null)
             {
                 headsetMultiplier = SettingsModel.Instance.HeadsetMultiplier.Value;
@@ -343,11 +317,11 @@ namespace BobbysMusicPlayer
             {
                 headsetMultiplier = 1f;
             }
+            
             // Each of the in-raid AudioSources' volumes are calculated by multiplying their configurable volumes with the indoor multiplier and the headset multiplier.
-            environmentDict[EnvironmentType.Indoor] = SettingsModel.Instance.IndoorMultiplier.Value;
-            soundtrackVolume = SettingsModel.Instance.SoundtrackVolume.Value * environmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
-            spawnMusicVolume = SettingsModel.Instance.SpawnMusicVolume.Value * environmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
-            combatMusicVolume = SettingsModel.Instance.CombatMusicVolume.Value * environmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
+            soundtrackVolume = SettingsModel.Instance.SoundtrackVolume.Value * GlobalData.EnvironmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
+            spawnMusicVolume = SettingsModel.Instance.SpawnMusicVolume.Value * GlobalData.EnvironmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
+            combatMusicVolume = SettingsModel.Instance.CombatMusicVolume.Value * GlobalData.EnvironmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
 
             // We check if the combat AudioSource is playing so that the CombatLerp method can do its job adjusting the ambient soundtrack and spawn music AudioSources
             if (!Audio.combatAudioSource.isPlaying)

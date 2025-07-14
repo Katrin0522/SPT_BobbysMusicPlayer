@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using EFT.UI;
+using UnityEngine;
 
 namespace BobbysMusicPlayer;
 
@@ -44,5 +45,26 @@ public static class GlobalData
         [EUISoundType.PlayerIsDead] = 5,
         [EUISoundType.ErrorMessage] = 6,
         [EUISoundType.TradeOperationComplete] = 7
+    };
+
+    public static Dictionary<string, AudioType> AudioTypes = new Dictionary<string, AudioType>
+    {
+        [".wav"] = AudioType.WAV,
+        [".ogg"] = AudioType.OGGVORBIS,
+        [".mp2"] = AudioType.MPEG,
+        [".mp3"] = AudioType.MPEG,
+        [".aiff"] = AudioType.AIFF,
+        [".s3m"] = AudioType.S3M,
+        [".it"] = AudioType.IT,
+        [".mod"] = AudioType.MOD,
+        [".xm"] = AudioType.XM,
+        [".xma"] = AudioType.XMA,
+        [".vag"] = AudioType.VAG
+    };
+    
+    public static Dictionary<EnvironmentType, float> EnvironmentDict = new()
+    {
+        { EnvironmentType.Outdoor, 1f },
+        { EnvironmentType.Indoor, 1f }
     };
 }

@@ -1,4 +1,5 @@
 #if DEBUG
+using BobbysMusicPlayer.Models;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -51,19 +52,19 @@ namespace BobbysMusicPlayer.Utils
         {
             if (_overlayText == null) return;
             
-            _overlayText.text = $"InRaid -> {Plugin.InRaid}\n" +
+            _overlayText.text = $"InRaid -> {BobbysMusicPlayerPlugin.InRaid}\n" +
                                 $"\n" +
-                                $"Combat Timer -> {Plugin.combatTimer}" + 
+                                $"Combat Timer -> {BobbysMusicPlayerPlugin.combatTimer}" + 
                                 $"\n" +
                                 $"[CombatLerp Volume Data]\n" +
-                                $"CombatAudioSource Volume -> {Mathf.Lerp(0f, Plugin.combatMusicVolume, Plugin.lerp)}\n" +
-                                $"SoundtrackAudioSource Volume -> {Mathf.Lerp(Plugin.soundtrackVolume, Plugin.AmbientCombatMultiplier.Value*Plugin.soundtrackVolume, Plugin.lerp)}\n" +
-                                $"SpawnAudioSource Volume -> {Mathf.Lerp(Plugin.spawnMusicVolume, Plugin.AmbientCombatMultiplier.Value*Plugin.spawnMusicVolume, Plugin.lerp)}\n" +
+                                $"CombatAudioSource Volume -> {Mathf.Lerp(0f, BobbysMusicPlayerPlugin.combatMusicVolume, BobbysMusicPlayerPlugin.lerp)}\n" +
+                                $"SoundtrackAudioSource Volume -> {Mathf.Lerp(BobbysMusicPlayerPlugin.soundtrackVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*BobbysMusicPlayerPlugin.soundtrackVolume, BobbysMusicPlayerPlugin.lerp)}\n" +
+                                $"SpawnAudioSource Volume -> {Mathf.Lerp(BobbysMusicPlayerPlugin.spawnMusicVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*BobbysMusicPlayerPlugin.spawnMusicVolume, BobbysMusicPlayerPlugin.lerp)}\n" +
                                 $"\n" +
                                 $"[VolumeSetter Volume Data]\n" +
-                                $"CombatAudioSource Volume -> {Plugin.combatMusicVolume}\n" +
-                                $"SoundtrackAudioSource Volume -> {Plugin.soundtrackVolume}\n" +
-                                $"SpawnAudioSource Volume -> {Plugin.spawnMusicVolume}\n" +
+                                $"CombatAudioSource Volume -> {BobbysMusicPlayerPlugin.combatMusicVolume}\n" +
+                                $"SoundtrackAudioSource Volume -> {BobbysMusicPlayerPlugin.soundtrackVolume}\n" +
+                                $"SpawnAudioSource Volume -> {BobbysMusicPlayerPlugin.spawnMusicVolume}\n" +
                                 $"\n" +
                                 $"[AudioSource is playing?]\n" +
                                 $"CombatAudioSource isPlay? -> {Audio.combatAudioSource?.isPlaying}\n" +
