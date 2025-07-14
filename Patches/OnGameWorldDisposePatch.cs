@@ -2,6 +2,10 @@ using System.Reflection;
 using EFT;
 using SPT.Reflection.Patching;
 
+#if DEBUG
+using BobbysMusicPlayer.Utils;
+#endif
+
 namespace BobbysMusicPlayer.Patches
 {
     public class OnGameWorldDisposePatch : ModulePatch
@@ -14,7 +18,10 @@ namespace BobbysMusicPlayer.Patches
         [PatchPrefix]
         static void Prefix()
         {
-            BobbysMusicPlayerPlugin.LogSource.LogWarning("GameWorld Dispose!");
+            
+#if DEBUG
+            OverlayDebug.Instance.Disable();
+#endif
             BobbysMusicPlayerPlugin.InRaid = false;
         }
     }

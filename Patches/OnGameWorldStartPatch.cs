@@ -1,6 +1,9 @@
 using System.Reflection;
 using EFT;
 using SPT.Reflection.Patching;
+#if DEBUG
+using BobbysMusicPlayer.Utils;
+#endif
 
 namespace BobbysMusicPlayer.Patches
 {
@@ -14,7 +17,9 @@ namespace BobbysMusicPlayer.Patches
         [PatchPostfix]
         static void PostFix()
         {
-            BobbysMusicPlayerPlugin.LogSource.LogWarning("GameWorld OnGameStarted!");
+#if DEBUG
+            OverlayDebug.Instance.Enable();
+#endif
             BobbysMusicPlayerPlugin.InRaid = true;
         }
     }
