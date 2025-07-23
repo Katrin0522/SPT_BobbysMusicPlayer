@@ -3,8 +3,10 @@ using EFT.UI;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using BobbysMusicPlayer.Utils;
 using UnityEngine;
 using HarmonyLib;
+using static UnityEngine.Random;
 
 namespace BobbysMusicPlayer.Patches
 {
@@ -28,8 +30,8 @@ namespace BobbysMusicPlayer.Patches
 
         private static void LoadNextTrack(EEndGameSoundType soundType)
         {
-            string raidEndTrack = raidEndDictionary[soundType][BobbysMusicPlayerPlugin.Random.Next(raidEndDictionary[soundType].Count)];
-            raidEndClip = bobbysMusicPlayerPlugin.RequestAudioClip(raidEndTrack);
+            string raidEndTrack = raidEndDictionary[soundType][Range(0, raidEndDictionary[soundType].Count)];
+            raidEndClip = AudioManager.RequestAudioClip(raidEndTrack);
             string trackName = Path.GetFileName(raidEndTrack);
             Logger.LogInfo(trackName + " assigned to " + soundType);
         }

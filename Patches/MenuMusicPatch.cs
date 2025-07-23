@@ -11,6 +11,8 @@ using EFT;
 using System;
 using BobbysMusicPlayer.Jukebox;
 using BobbysMusicPlayer.Models;
+using BobbysMusicPlayer.Utils;
+using static UnityEngine.Random;
 
 namespace BobbysMusicPlayer.Patches
 {
@@ -32,7 +34,7 @@ namespace BobbysMusicPlayer.Patches
         [PatchPrefix]
         static bool Prefix(AudioSource ___audioSource_3, AudioClip[] ___audioClip_0)
         {
-            Audio.menuMusicAudioSource = ___audioSource_3;
+            AudioManager.menuMusicAudioSource = ___audioSource_3;
             try
             {
                 if (menuTrackList.IsNullOrEmpty())
@@ -53,7 +55,7 @@ namespace BobbysMusicPlayer.Patches
                             do
                             {
                                 BobbysMusicPlayerPlugin.LogSource.LogInfo("choosing randomInt");
-                                randomInt = BobbysMusicPlayerPlugin.Random.Next(___audioClip_0.Length);
+                                randomInt = Range(0, ___audioClip_0.Length);
                             } while (randomArray.Contains(randomInt));
 
                             randomArray[i] = randomInt;
@@ -62,11 +64,11 @@ namespace BobbysMusicPlayer.Patches
                     }
 
                     Singleton<GUISounds>.Instance.method_7();
-                    Audio.menuMusicAudioSource.clip = trackArray[trackCounter];
-                    Audio.menuMusicAudioSource.Play();
+                    AudioManager.menuMusicAudioSource.clip = trackArray[trackCounter];
+                    AudioManager.menuMusicAudioSource.Play();
                     trackCounter++;
                     MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(
-                        Audio.menuMusicAudioSource.clip.length, new Action(Singleton<GUISounds>.Instance.method_3));
+                        AudioManager.menuMusicAudioSource.clip.length, new Action(Singleton<GUISounds>.Instance.method_3));
                     if (trackCounter >= trackArray.Count)
                     {
                         trackCounter = 0;
@@ -80,12 +82,12 @@ namespace BobbysMusicPlayer.Patches
                     }
 
                     Singleton<GUISounds>.Instance.method_7();
-                    Audio.menuMusicAudioSource.clip = trackArray[trackCounter];
-                    Audio.menuMusicAudioSource.Play();
+                    AudioManager.menuMusicAudioSource.clip = trackArray[trackCounter];
+                    AudioManager.menuMusicAudioSource.Play();
                     BobbysMusicPlayerPlugin.LogSource.LogInfo("Playing " + trackNamesArray[trackCounter]);
                     trackCounter++;
                     MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(
-                        Audio.menuMusicAudioSource.clip.length, new Action(Singleton<GUISounds>.Instance.method_3));
+                        AudioManager.menuMusicAudioSource.clip.length, new Action(Singleton<GUISounds>.Instance.method_3));
                     if (trackCounter >= trackArray.Count)
                     {
                         trackCounter = 0;
@@ -119,11 +121,11 @@ namespace BobbysMusicPlayer.Patches
             float targetLength = SettingsModel.Instance.CustomMenuMusicLength.Value * 60f;
             do
             {
-                int nextRandom = BobbysMusicPlayerPlugin.Random.Next(trackListToPlay.Count);
+                int nextRandom = Range(0, trackListToPlay.Count);
                 string track = trackListToPlay[nextRandom];
                 string trackName = Path.GetFileName(track);
                 BobbysMusicPlayerPlugin bobbysMusicPlayerPlugin = new BobbysMusicPlayerPlugin();
-                AudioClip unityAudioClip = await bobbysMusicPlayerPlugin.AsyncRequestAudioClip(track);
+                AudioClip unityAudioClip = await AudioManager.AsyncRequestAudioClip(track);
                 trackArray.Add(unityAudioClip);
                 trackNamesArray.Add(trackName);
                 trackListToPlay.Remove(track);

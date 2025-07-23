@@ -5,6 +5,7 @@ using SPT.Reflection.Patching;
 using System.Collections.Generic;
 using System.Reflection;
 using BobbysMusicPlayer.Models;
+using BobbysMusicPlayer.Utils;
 using UnityEngine;
 
 namespace BobbysMusicPlayer.Patches
@@ -21,10 +22,10 @@ namespace BobbysMusicPlayer.Patches
         [PatchPostfix]
         private static void Postfix()
         {
-            if (BobbysMusicPlayerPlugin.combatTimer < SettingsModel.Instance.CombatAttackedEntryTime.Value)
+            if (AudioManager.combatTimer < SettingsModel.Instance.CombatAttackedEntryTime.Value)
             {
-                BobbysMusicPlayerPlugin.combatTimer = SettingsModel.Instance.CombatAttackedEntryTime.Value;
-                BobbysMusicPlayerPlugin.LogSource.LogInfo("Player shot at. Combat Timer set to " + BobbysMusicPlayerPlugin.combatTimer);
+                AudioManager.combatTimer = SettingsModel.Instance.CombatAttackedEntryTime.Value;
+                BobbysMusicPlayerPlugin.LogSource.LogInfo("Player shot at. Combat Timer set to " + AudioManager.combatTimer);
             }
             else
             {
@@ -50,9 +51,9 @@ namespace BobbysMusicPlayer.Patches
                 return true;
             }
             playerFired = true;
-            if (BobbysMusicPlayerPlugin.combatTimer < SettingsModel.Instance.CombatFireEntryTime.Value)
+            if (AudioManager.combatTimer < SettingsModel.Instance.CombatFireEntryTime.Value)
             {
-                BobbysMusicPlayerPlugin.combatTimer = SettingsModel.Instance.CombatFireEntryTime.Value;
+                AudioManager.combatTimer = SettingsModel.Instance.CombatFireEntryTime.Value;
                 BobbysMusicPlayerPlugin.LogSource.LogInfo("Player fired. Combat timer set to " + SettingsModel.Instance.CombatFireEntryTime.Value);
             }
             else
@@ -80,9 +81,9 @@ namespace BobbysMusicPlayer.Patches
             }
             if (DamageTypeList.Contains(type.ToString()))
             {
-                if (BobbysMusicPlayerPlugin.combatTimer < SettingsModel.Instance.CombatHitEntryTime.Value)
+                if (AudioManager.combatTimer < SettingsModel.Instance.CombatHitEntryTime.Value)
                 {
-                    BobbysMusicPlayerPlugin.combatTimer = SettingsModel.Instance.CombatHitEntryTime.Value;
+                    AudioManager.combatTimer = SettingsModel.Instance.CombatHitEntryTime.Value;
                     BobbysMusicPlayerPlugin.LogSource.LogInfo("Player hit. Combat timer set to " + SettingsModel.Instance.CombatHitEntryTime.Value);
                 }
                 else
@@ -117,10 +118,10 @@ namespace BobbysMusicPlayer.Patches
                     PlayerFiringPatch.playerFired = false;
                     return true;
                 }
-                if (BobbysMusicPlayerPlugin.combatTimer < SettingsModel.Instance.CombatDangerEntryTime.Value)
+                if (AudioManager.combatTimer < SettingsModel.Instance.CombatDangerEntryTime.Value)
                 {
-                    BobbysMusicPlayerPlugin.combatTimer = SettingsModel.Instance.CombatDangerEntryTime.Value;
-                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Player shot near. Combat Timer set to " + BobbysMusicPlayerPlugin.combatTimer);
+                    AudioManager.combatTimer = SettingsModel.Instance.CombatDangerEntryTime.Value;
+                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Player shot near. Combat Timer set to " + AudioManager.combatTimer);
                 }
             }
             else
@@ -149,10 +150,10 @@ namespace BobbysMusicPlayer.Patches
                     PlayerFiringPatch.playerFired = false;
                     return true;
                 }
-                if (BobbysMusicPlayerPlugin.combatTimer < SettingsModel.Instance.CombatGrenadeEntryTime.Value)
+                if (AudioManager.combatTimer < SettingsModel.Instance.CombatGrenadeEntryTime.Value)
                 {
-                    BobbysMusicPlayerPlugin.combatTimer = SettingsModel.Instance.CombatGrenadeEntryTime.Value;
-                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Grenade explosion near. Combat Timer set to " + BobbysMusicPlayerPlugin.combatTimer);
+                    AudioManager.combatTimer = SettingsModel.Instance.CombatGrenadeEntryTime.Value;
+                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Grenade explosion near. Combat Timer set to " + AudioManager.combatTimer);
                 }
             }
             else

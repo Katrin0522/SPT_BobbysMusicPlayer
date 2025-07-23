@@ -3,8 +3,10 @@ using EFT.UI;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using BobbysMusicPlayer.Utils;
 using UnityEngine;
 using HarmonyLib;
+using static UnityEngine.Random;
 
 namespace BobbysMusicPlayer.Patches
 {
@@ -33,7 +35,7 @@ namespace BobbysMusicPlayer.Patches
             }
             
             // The sound that plays in game will be a randomly selected sound from the corresponding folder
-            __result = audioClipArray[BobbysMusicPlayerPlugin.Random.Next(audioClipArray.Count)];
+            __result = audioClipArray[Range(0, audioClipArray.Count)];
             return false;
         }
         
@@ -48,7 +50,7 @@ namespace BobbysMusicPlayer.Patches
                 uiSoundsClips[counter] = new List<AudioClip>();
                 foreach (string track in list)
                 {
-                    uiSoundsClips[counter].Add(await bobbysMusicPlayerPlugin.AsyncRequestAudioClip(track));
+                    uiSoundsClips[counter].Add(await AudioManager.AsyncRequestAudioClip(track));
                     BobbysMusicPlayerPlugin.LogSource.LogInfo(Path.GetFileName(track) + " assigned to " + GlobalData.UISoundsDir[counter]);
                 }
                 counter++;

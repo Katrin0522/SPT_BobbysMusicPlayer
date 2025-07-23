@@ -1,5 +1,6 @@
 using System;
 using BobbysMusicPlayer.Models;
+using BobbysMusicPlayer.Utils;
 using EFT;
 using UnityEngine;
 
@@ -9,80 +10,92 @@ namespace BobbysMusicPlayer.Jukebox
     {
         internal static bool soundtrackCalled = false;
         internal static bool inRaid = false; 
-        private static int trackCounter = 0;
+        private static int trackCounter;
         internal static Coroutine soundtrackCoroutine;
-        private static bool paused = false;
-        private static float pausedTime = 0f;
+        private static bool paused;
+        private static float pausedTime;
+        
         public static void PlaySoundtrack()
         {
-            if (!soundtrackCalled || Audio.soundtrackAudioSource.isPlaying || paused || Audio.spawnAudioSource.isPlaying || BobbysMusicPlayerPlugin.ambientTrackArray.IsNullOrEmpty() || !BobbysMusicPlayerPlugin.HasFinishedLoadingAudio)
+            if (!soundtrackCalled || AudioManager.soundtrackAudioSource.isPlaying || paused || AudioManager.spawnAudioSource.isPlaying || AudioManager.ambientTrackArray.IsNullOrEmpty() || !AudioManager.HasFinishedLoadingAudio)
             {
                 return;
             }
-            if (BobbysMusicPlayerPlugin.ambientTrackArray.Count == 1)
+            
+            if (AudioManager.ambientTrackArray.Count == 1)
             {
                 trackCounter = 0;
             }
-            Audio.soundtrackAudioSource.clip = BobbysMusicPlayerPlugin.ambientTrackArray[trackCounter];
-            Audio.soundtrackAudioSource.Play();
-            BobbysMusicPlayerPlugin.LogSource.LogInfo("Playing " + BobbysMusicPlayerPlugin.ambientTrackNamesArray[trackCounter]);
+            
+            AudioManager.soundtrackAudioSource.clip = AudioManager.ambientTrackArray[trackCounter];
+            AudioManager.soundtrackAudioSource.Play();
+            BobbysMusicPlayerPlugin.LogSource.LogInfo("Playing " + AudioManager.ambientTrackNamesArray[trackCounter]);
             trackCounter++;
-            soundtrackCoroutine = StaticManager.Instance.WaitSeconds(Audio.soundtrackAudioSource.clip.length, new Action(PlaySoundtrack));
-            if (trackCounter >= BobbysMusicPlayerPlugin.ambientTrackArray.Count)
+            soundtrackCoroutine = StaticManager.Instance.WaitSeconds(AudioManager.soundtrackAudioSource.clip.length, PlaySoundtrack);
+            
+            if (trackCounter >= AudioManager.ambientTrackArray.Count)
             {
                 trackCounter = 0;
             }
         }
-        // This method is responsible for handling the "Jukebox" controls of the Ambient Soundtrack
+        
+        /// <summary>
+        /// This method is responsible for handling the "Jukebox" controls of the Ambient Soundtrack
+        /// </summary>
         public static void SoundtrackControls()
         {
-            if (Audio.spawnAudioSource.isPlaying)
+            if (AudioManager.spawnAudioSource.isPlaying) return;
+            
+            if (Input.GetKeyDown(SettingsModel.Instance.PauseTrack.Value.MainKey) && AudioManager.soundtrackAudioSource.isPlaying)
             {
-                return;
-            }
-            if (Input.GetKeyDown(SettingsModel.Instance.PauseTrack.Value.MainKey) && Audio.soundtrackAudioSource.isPlaying)
-            {
-                Audio.soundtrackAudioSource.Pause();
+                AudioManager.soundtrackAudioSource.Pause();
                 StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
-                pausedTime = Audio.soundtrackAudioSource.clip.length - Audio.soundtrackAudioSource.time;
+                pausedTime = AudioManager.soundtrackAudioSource.clip.length - AudioManager.soundtrackAudioSource.time;
                 paused = true;
             }
             else if (Input.GetKeyDown(SettingsModel.Instance.PauseTrack.Value.MainKey) && paused)
             {
-                Audio.soundtrackAudioSource.UnPause();
-                soundtrackCoroutine = StaticManager.Instance.WaitSeconds(pausedTime, new Action(PlaySoundtrack));
+                AudioManager.soundtrackAudioSource.UnPause();
+                soundtrackCoroutine = StaticManager.Instance.WaitSeconds(pausedTime, PlaySoundtrack);
                 paused = false;
             }
+            
             if (Input.GetKeyDown(SettingsModel.Instance.RestartTrack.Value.MainKey))
             {
-                Audio.soundtrackAudioSource.Stop();
+                AudioManager.soundtrackAudioSource.Stop();
+                
                 if (trackCounter != 0)
                 {
                     trackCounter--;
                 }
                 else
                 {
-                    trackCounter = BobbysMusicPlayerPlugin.ambientTrackArray.Count - 1;
+                    trackCounter = AudioManager.ambientTrackArray.Count - 1;
                 }
+                
                 StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
                 paused = false;
                 PlaySoundtrack();
             }
+            
             if (Input.GetKeyDown(SettingsModel.Instance.PreviousTrack.Value.MainKey))
             {
-                Audio.soundtrackAudioSource.Stop();
+                AudioManager.soundtrackAudioSource.Stop();
                 trackCounter -= 2;
+                
                 if (trackCounter < 0)
                 {
-                    trackCounter = BobbysMusicPlayerPlugin.ambientTrackArray.Count + (trackCounter);
+                    trackCounter = AudioManager.ambientTrackArray.Count + (trackCounter);
                 }
+                
                 StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
                 paused = false;
                 PlaySoundtrack();
             }
+            
             if (Input.GetKeyDown(SettingsModel.Instance.SkipTrack.Value.MainKey))
             {
-                Audio.soundtrackAudioSource.Stop();
+                AudioManager.soundtrackAudioSource.Stop();
                 StaticManager.Instance.StopCoroutine(soundtrackCoroutine);
                 paused = false;
                 PlaySoundtrack();
