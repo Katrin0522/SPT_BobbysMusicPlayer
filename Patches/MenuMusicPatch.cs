@@ -68,7 +68,8 @@ namespace BobbysMusicPlayer.Patches
                     AudioManager.menuMusicAudioSource.Play();
                     trackCounter++;
                     MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(
-                        AudioManager.menuMusicAudioSource.clip.length, new Action(Singleton<GUISounds>.Instance.method_3));
+                        AudioManager.menuMusicAudioSource.clip.length, Singleton<GUISounds>.Instance.method_3);
+                    
                     if (trackCounter >= trackArray.Count)
                     {
                         trackCounter = 0;
@@ -87,7 +88,8 @@ namespace BobbysMusicPlayer.Patches
                     BobbysMusicPlayerPlugin.LogSource.LogInfo("Playing " + trackNamesArray[trackCounter]);
                     trackCounter++;
                     MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(
-                        AudioManager.menuMusicAudioSource.clip.length, new Action(Singleton<GUISounds>.Instance.method_3));
+                        AudioManager.menuMusicAudioSource.clip.length, Singleton<GUISounds>.Instance.method_3);
+                    
                     if (trackCounter >= trackArray.Count)
                     {
                         trackCounter = 0;
@@ -98,7 +100,7 @@ namespace BobbysMusicPlayer.Patches
             }
             catch (Exception e)
             {
-                Logger.LogError("Error while loading music "+e.ToString());
+                Logger.LogError("Error while loading music "+e);
                 return false;
             }
         }
@@ -110,21 +112,25 @@ namespace BobbysMusicPlayer.Patches
         {
             float totalLength = 0;
             HasReloadedAudio = true;
+            
             if (menuTrackList.IsNullOrEmpty())
             {
                 return;
             }
+            
             trackArray.Clear();
             trackNamesArray.Clear();
             trackListToPlay.Clear();
             trackListToPlay.AddRange(menuTrackList);
+            
             float targetLength = SettingsModel.Instance.CustomMenuMusicLength.Value * 60f;
+            
             do
             {
                 int nextRandom = Range(0, trackListToPlay.Count);
                 string track = trackListToPlay[nextRandom];
                 string trackName = Path.GetFileName(track);
-                BobbysMusicPlayerPlugin bobbysMusicPlayerPlugin = new BobbysMusicPlayerPlugin();
+                // BobbysMusicPlayerPlugin bobbysMusicPlayerPlugin = new BobbysMusicPlayerPlugin();
                 AudioClip unityAudioClip = await AudioManager.AsyncRequestAudioClip(track);
                 trackArray.Add(unityAudioClip);
                 trackNamesArray.Add(trackName);
@@ -146,10 +152,12 @@ namespace BobbysMusicPlayer.Patches
         static bool Prefix()
         {
             BobbysMusicPlayerPlugin.LogSource.LogInfo("GUISounds.method_8 called");
+            
             if (MenuMusicJukebox.menuMusicCoroutine == null)
             {
                 return false;
             }
+            
             StaticManager.Instance.StopCoroutine(MenuMusicJukebox.menuMusicCoroutine);
             MenuMusicJukebox.menuMusicCoroutine = null;
             return false;

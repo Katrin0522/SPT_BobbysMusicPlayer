@@ -12,17 +12,17 @@ namespace BobbysMusicPlayer.Patches
 {
     public class RaidEndMusicPatch : ModulePatch
     {
-        internal static List<string> deathMusicList = new List<string>();
-        internal static List<string> extractMusicList = new List<string>();
-        private static Dictionary<EEndGameSoundType, List<string>> raidEndDictionary = new Dictionary<EEndGameSoundType, List<string>> 
+        internal static List<string> deathMusicList = new();
+        internal static List<string> extractMusicList = new();
+        private static Dictionary<EEndGameSoundType, List<string>> raidEndDictionary = new()
         {
             [EEndGameSoundType.ArenaLose] = deathMusicList,
             [EEndGameSoundType.ArenaWin] = extractMusicList
         };
+        
         private static AudioClip raidEndClip;
-        private static BobbysMusicPlayerPlugin bobbysMusicPlayerPlugin = new BobbysMusicPlayerPlugin();
-        //TODO: Move all audio action into separate class
 
+        //TODO: Move all audio action into separate class
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(UISoundsWrapper), nameof(UISoundsWrapper.GetEndGameClip));
@@ -32,6 +32,7 @@ namespace BobbysMusicPlayer.Patches
         {
             string raidEndTrack = raidEndDictionary[soundType][Range(0, raidEndDictionary[soundType].Count)];
             raidEndClip = AudioManager.RequestAudioClip(raidEndTrack);
+            
             string trackName = Path.GetFileName(raidEndTrack);
             Logger.LogInfo(trackName + " assigned to " + soundType);
         }
@@ -43,12 +44,15 @@ namespace BobbysMusicPlayer.Patches
             {
                 return true;
             }
+            
             LoadNextTrack(soundType);
+            
             if (raidEndClip != null)
             {
                 __result = raidEndClip;
                 return false;
             }
+            
             return true;
         }
     }

@@ -1,4 +1,3 @@
-using System;
 using BobbysMusicPlayer.Models;
 using BobbysMusicPlayer.Utils;
 using EFT;
@@ -8,11 +7,12 @@ namespace BobbysMusicPlayer.Jukebox
 {
     public class SoundtrackJukebox : MonoBehaviour
     {
+        private static Coroutine soundtrackCoroutine;
+        
         internal static bool soundtrackCalled = false;
-        internal static bool inRaid = false; 
-        private static int trackCounter;
-        internal static Coroutine soundtrackCoroutine;
         private static bool paused;
+        
+        private static int trackCounter;
         private static float pausedTime;
         
         public static void PlaySoundtrack()
@@ -42,7 +42,7 @@ namespace BobbysMusicPlayer.Jukebox
         /// <summary>
         /// This method is responsible for handling the "Jukebox" controls of the Ambient Soundtrack
         /// </summary>
-        public static void SoundtrackControls()
+        public static void CheckSoundtrackControls()
         {
             if (AudioManager.spawnAudioSource.isPlaying) return;
             

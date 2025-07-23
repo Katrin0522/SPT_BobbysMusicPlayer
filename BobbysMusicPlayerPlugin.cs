@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
+using BobbysMusicPlayer.Data;
 using BobbysMusicPlayer.Patches;
 using Comfort.Common;
 using EFT;
@@ -19,19 +20,19 @@ namespace BobbysMusicPlayer
         
         public static bool InRaid { get; set; }
         
-        internal void Awake()
+        private void Awake()
         {
             LogSource = Logger;
             LogSource.LogInfo("Plugin loading...");
             
             //Init config
             _settings = SettingsModel.Create(Config);
-
+            
+            GlobalData.EnvironmentDict[EnvironmentType.Indoor] = _settings.IndoorMultiplier.Value;
+            
             //Initialization audio side
             _audio = new AudioManager();
             _audio.Init(gameObject);
-            
-            GlobalData.EnvironmentDict[EnvironmentType.Indoor] = _settings.IndoorMultiplier.Value;
             
             new MenuMusicPatch().Enable();
             new RaidEndMusicPatch().Enable();
@@ -53,7 +54,8 @@ namespace BobbysMusicPlayer
 
         private void Update()
         {
-            MenuMusicJukebox.MenuMusicControls();
+            MenuMusicJukebox.CheckMenuMusicControls();
+            
             if (!InRaid)
             {
                 if (!MenuMusicPatch.HasReloadedAudio)
@@ -73,26 +75,22 @@ namespace BobbysMusicPlayer
             }
             
             MenuMusicPatch.HasReloadedAudio = false;
+            
             _audio.PrepareRaidAudioClips();
             
             if (Singleton<AbstractGame>.Instance.Status != GameStatus.Started)
             {
                 return;
             }
-
-            #region UpdateMethods
             
-            _audio.CombatMusic();
-            _audio.VolumeSetter();
             _audio.PlaySpawnMusic();
+            _audio.VolumeSetter();
+            _audio.CombatMusic();
             
-            SoundtrackJukebox.SoundtrackControls();
+            SoundtrackJukebox.CheckSoundtrackControls();
             SoundtrackJukebox.soundtrackCalled = true;
             SoundtrackJukebox.PlaySoundtrack();
-            
-            #endregion
+
         }
-        
-        
     }
 }
