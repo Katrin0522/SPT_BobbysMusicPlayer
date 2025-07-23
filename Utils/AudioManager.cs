@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using BobbysMusicPlayer.Data;
 using BobbysMusicPlayer.Models;
 using BobbysMusicPlayer.Patches;
 using Comfort.Common;
@@ -21,25 +22,25 @@ namespace BobbysMusicPlayer.Utils
         public static AudioSource combatAudioSource;
         public static AudioSource menuMusicAudioSource;
         
-        public static bool HasStartedLoadingAudio = false;
-        public static bool HasFinishedLoadingAudio = false;
-        public static bool spawnTrackHasPlayed = false;
+        public static bool HasStartedLoadingAudio;
+        public static bool HasFinishedLoadingAudio;
+        public static bool spawnTrackHasPlayed;
         
-        private static List<string> combatMusicTrackList = new List<string>();
-        private static List<string> ambientTrackListToPlay = new List<string>();
-        private static List<string> spawnTrackList = new List<string>();
-        private static List<string> defaultTrackList = new List<string>();
+        private static List<string> combatMusicTrackList = new();
+        private static List<string> ambientTrackListToPlay = new();
+        private static List<string> spawnTrackList = new();
+        private static List<string> defaultTrackList = new();
         
-        private static List<AudioClip> combatMusicClipList = new List<AudioClip>();
-        private static List<AudioClip> spawnTrackClipList = new List<AudioClip>();
-        internal static List<string> ambientTrackNamesArray = new List<string>();
-        internal static List<AudioClip> ambientTrackArray = new List<AudioClip>();
+        private static List<AudioClip> combatMusicClipList = new();
+        private static List<AudioClip> spawnTrackClipList = new();
+        internal static List<string> ambientTrackNamesArray = new();
+        internal static List<AudioClip> ambientTrackArray = new();
         
-        internal static float lerp = 0f;
-        internal static float combatTimer = 0f;
-        internal static float soundtrackVolume = 0f;
-        internal static float spawnMusicVolume = 0f;
-        internal static float combatMusicVolume = 0f;
+        internal static float lerp;
+        internal static float combatTimer;
+        internal static float soundtrackVolume;
+        internal static float spawnMusicVolume;
+        internal static float combatMusicVolume;
         private static float headsetMultiplier = 1f;
 
         public void Init(GameObject mainObj)
@@ -65,33 +66,33 @@ namespace BobbysMusicPlayer.Utils
         /// </summary>
         private void LoadMusic()
         {
-            MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\CustomMenuMusic\\sounds"));
+            MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(PathData.CustomMenuMusicSounds));
             
             //This if statement exists just in case some people install outdated music packs by mistake
-            if (MenuMusicPatch.menuTrackList.IsNullOrEmpty() && Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\CustomMenuMusic\\sounds"))
+            if (MenuMusicPatch.menuTrackList.IsNullOrEmpty() && Directory.Exists(PathData.CustomMenuMusicSoundsMissing))
             {
-                MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\CustomMenuMusic\\sounds"));
+                MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(PathData.CustomMenuMusicSoundsMissing));
             }
             
-            defaultTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\Soundtrack\\default_soundtrack"));
-            if (defaultTrackList.IsNullOrEmpty() && Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\Soundtrack\\sounds"))
+            defaultTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackDefault));
+            if (defaultTrackList.IsNullOrEmpty() && Directory.Exists(PathData.SoundtrackSoundsMissing))
             {
-                defaultTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\Soundtrack\\sounds"));
+                defaultTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackSoundsMissing));
             }
             
-            combatMusicTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\Soundtrack\\combat_music"));
+            combatMusicTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackCombat));
             
-            spawnTrackList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\Soundtrack\\spawn_music"));
+            spawnTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackSpawn));
             
-            RaidEndMusicPatch.deathMusicList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\DeathMusic"));
-            RaidEndMusicPatch.extractMusicList.AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\ExtractMusic"));
+            RaidEndMusicPatch.deathMusicList.AddRange(Directory.GetFiles(PathData.SoundtrackDeath));
+            RaidEndMusicPatch.extractMusicList.AddRange(Directory.GetFiles(PathData.SoundtrackExtract));
             
             int counter = 0;
             foreach (var dir in GlobalData.UISoundsDir)
             {
                 // Each element of uiSounds is a List of strings so that users can add as few or as many sounds as they want to a given folder
                 UISoundsPatch.uiSounds[counter] = new List<string>();
-                UISoundsPatch.uiSounds[counter].AddRange(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "\\BepInEx\\plugins\\BobbysMusicPlayer\\UISounds\\" + dir));
+                UISoundsPatch.uiSounds[counter].AddRange(Directory.GetFiles(PathData.SoundtrackUI + dir));
                 counter++;
             }
         }
@@ -248,7 +249,7 @@ namespace BobbysMusicPlayer.Utils
         /// <summary>
         /// Process combat music lerp side 
         /// </summary>
-        public void CombatLerp()
+        private void CombatLerp()
         {
             AdjustVolume(combatAudioSource, Mathf.Lerp(0f, combatMusicVolume, lerp));
             AdjustVolume(soundtrackAudioSource, Mathf.Lerp(soundtrackVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*soundtrackVolume, lerp));
