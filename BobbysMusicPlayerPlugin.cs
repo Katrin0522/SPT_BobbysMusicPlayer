@@ -80,11 +80,6 @@ namespace BobbysMusicPlayer
             MenuMusicPatch.HasReloadedAudio = false;
             
             _audio.PrepareRaidAudioClips();
-            
-            if (Singleton<AbstractGame>.Instance.Status != GameStatus.Started)
-            {
-                return;
-            }
 #if DEBUG
             OverlayDebug.Instance.UpdateOverlay();
 #endif
