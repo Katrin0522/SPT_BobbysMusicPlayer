@@ -13,6 +13,8 @@ namespace BobbysMusicPlayer
     [BepInPlugin("BobbyRenzobbi.MusicPlayer", "BobbysMusicPlayer", "1.2.4")]
     public class BobbysMusicPlayerPlugin : BaseUnityPlugin
     {
+        public static BobbysMusicPlayerPlugin Instance { get; private set; }
+        
         private SettingsModel _settings;
         private AudioManager _audio;
         
@@ -22,6 +24,7 @@ namespace BobbysMusicPlayer
         
         private void Awake()
         {
+            Instance = this;
             LogSource = Logger;
             LogSource.LogInfo("Plugin loading...");
             
@@ -64,8 +67,8 @@ namespace BobbysMusicPlayer
                     UISoundsPatch.LoadUIClips();
                 }
                 SoundtrackJukebox.soundtrackCalled = false;
-                AudioManager.HasStartedLoadingAudio = false;
-                AudioManager.spawnTrackHasPlayed = false;
+                _audio.HasStartedLoadingAudio = false;
+                _audio.spawnTrackHasPlayed = false;
                 return;
             }
             
@@ -92,5 +95,7 @@ namespace BobbysMusicPlayer
             SoundtrackJukebox.PlaySoundtrack();
 
         }
+
+        public AudioManager GetAudio() => _audio;
     }
 }

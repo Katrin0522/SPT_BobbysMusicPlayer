@@ -17,31 +17,35 @@ namespace BobbysMusicPlayer.Utils
 {
     public class AudioManager
     {
-        public static AudioSource soundtrackAudioSource;
-        public static AudioSource spawnAudioSource;
-        public static AudioSource combatAudioSource;
-        public static AudioSource menuMusicAudioSource;
+        public AudioSource soundtrackAudioSource;
+        public AudioSource spawnAudioSource;
+        public AudioSource combatAudioSource;
+        public AudioSource menuMusicAudioSource;
         
-        public static bool HasStartedLoadingAudio;
-        public static bool HasFinishedLoadingAudio;
-        public static bool spawnTrackHasPlayed;
+        public bool HasStartedLoadingAudio;
+        public bool HasFinishedLoadingAudio;
+        public bool spawnTrackHasPlayed;
         
-        private static List<string> combatMusicTrackList = new();
-        private static List<string> ambientTrackListToPlay = new();
-        private static List<string> spawnTrackList = new();
-        private static List<string> defaultTrackList = new();
+        private List<string> combatMusicTrackList = new();
+        private List<string> ambientTrackListToPlay = new();
+        private List<string> spawnTrackList = new();
+        private List<string> defaultTrackList = new();
         
-        private static List<AudioClip> combatMusicClipList = new();
-        private static List<AudioClip> spawnTrackClipList = new();
-        internal static List<string> ambientTrackNamesArray = new();
-        internal static List<AudioClip> ambientTrackArray = new();
+        private List<AudioClip> combatMusicClipList = new();
+        private List<AudioClip> spawnTrackClipList = new();
+        internal List<string> ambientTrackNamesArray = new();
+        internal List<AudioClip> ambientTrackArray = new();
         
-        internal static float lerp;
-        internal static float combatTimer;
-        internal static float soundtrackVolume;
-        internal static float spawnMusicVolume;
-        internal static float combatMusicVolume;
-        private static float headsetMultiplier = 1f;
+        internal float targetEnvironmentMultiplier;
+        internal float currentEnvironmentMultiplier;
+        internal float lerp;
+        internal float combatTimer;
+        internal float soundtrackVolume;
+        internal float spawnMusicVolume;
+        internal float combatMusicVolume;
+        internal float headsetMultiplier = 1f;
+        
+        private EnvironmentType lastEnvironment;
 
         public void Init(GameObject mainObj)
         {
@@ -54,11 +58,6 @@ namespace BobbysMusicPlayer.Utils
             }
 
             LoadMusic();
-        }
-
-        public void Update()
-        {
-            
         }
         
         /// <summary>
@@ -162,26 +161,31 @@ namespace BobbysMusicPlayer.Utils
             // Next two lines are taken from Fontaine's Realism Mod. Credit to him
             CompoundItem headwear = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Headwear).ContainedItem as CompoundItem;
             HeadphonesItemClass headset = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Earpiece).ContainedItem as HeadphonesItemClass ?? ((headwear != null) ? headwear.GetAllItemsFromCollection().OfType<HeadphonesItemClass>().FirstOrDefault<HeadphonesItemClass>() : null);
-            if (headset != null)
+            
+            headsetMultiplier = headset != null ? SettingsModel.Instance.HeadsetMultiplier.Value : 1f;
+            
+            EnvironmentType currentEnvironment = Singleton<GameWorld>.Instance.MainPlayer.Environment;
+            
+            if (currentEnvironment != lastEnvironment)
             {
-                headsetMultiplier = SettingsModel.Instance.HeadsetMultiplier.Value;
+                lastEnvironment = currentEnvironment;
+                targetEnvironmentMultiplier = GlobalData.EnvironmentDict[currentEnvironment];
             }
-            else
-            {
-                headsetMultiplier = 1f;
-            }
+            
+            currentEnvironmentMultiplier = Mathf.Lerp(currentEnvironmentMultiplier, targetEnvironmentMultiplier, Time.deltaTime * SettingsModel.Instance.SmoothChangeEnv.Value);
+
             
             // Each of the in-raid AudioSources' volumes are calculated by multiplying their configurable volumes with the indoor multiplier and the headset multiplier.
             // TODO: Fix sharp switching of Environment
-            soundtrackVolume = SettingsModel.Instance.SoundtrackVolume.Value * GlobalData.EnvironmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
-            spawnMusicVolume = SettingsModel.Instance.SpawnMusicVolume.Value * GlobalData.EnvironmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
-            combatMusicVolume = SettingsModel.Instance.CombatMusicVolume.Value * GlobalData.EnvironmentDict[Singleton<GameWorld>.Instance.MainPlayer.Environment] * headsetMultiplier;
+            soundtrackVolume = SettingsModel.Instance.SoundtrackVolume.Value * currentEnvironmentMultiplier * headsetMultiplier;
+            spawnMusicVolume = SettingsModel.Instance.SpawnMusicVolume.Value * currentEnvironmentMultiplier * headsetMultiplier;
+            combatMusicVolume = SettingsModel.Instance.CombatMusicVolume.Value * currentEnvironmentMultiplier * headsetMultiplier;
 
             // We check if the combat AudioSource is playing so that the CombatLerp method can do its job adjusting the ambient soundtrack and spawn music AudioSources
             if (!combatAudioSource.isPlaying)
             {
-                    AdjustVolume(soundtrackAudioSource, soundtrackVolume);
-                    AdjustVolume(spawnAudioSource, spawnMusicVolume);
+                AdjustVolume(soundtrackAudioSource, soundtrackVolume); 
+                AdjustVolume(spawnAudioSource, spawnMusicVolume);
             }
             if (lerp >= 1)
             {

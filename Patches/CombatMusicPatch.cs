@@ -22,10 +22,11 @@ namespace BobbysMusicPlayer.Patches
         [PatchPostfix]
         private static void Postfix()
         {
-            if (AudioManager.combatTimer < SettingsModel.Instance.CombatAttackedEntryTime.Value)
+            AudioManager audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
+            if (audio.combatTimer < SettingsModel.Instance.CombatAttackedEntryTime.Value)
             {
-                AudioManager.combatTimer = SettingsModel.Instance.CombatAttackedEntryTime.Value;
-                BobbysMusicPlayerPlugin.LogSource.LogInfo("Player shot at. Combat Timer set to " + AudioManager.combatTimer);
+                audio.combatTimer = SettingsModel.Instance.CombatAttackedEntryTime.Value;
+                BobbysMusicPlayerPlugin.LogSource.LogInfo("Player shot at. Combat Timer set to " + audio.combatTimer);
             }
             else
             {
@@ -46,14 +47,15 @@ namespace BobbysMusicPlayer.Patches
         private static bool Prefix(Player __instance)
         {
             Player player = Singleton<GameWorld>.Instance.MainPlayer;
+            AudioManager audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
             if (__instance != player)
             {
                 return true;
             }
             playerFired = true;
-            if (AudioManager.combatTimer < SettingsModel.Instance.CombatFireEntryTime.Value)
+            if (audio.combatTimer < SettingsModel.Instance.CombatFireEntryTime.Value)
             {
-                AudioManager.combatTimer = SettingsModel.Instance.CombatFireEntryTime.Value;
+                audio.combatTimer = SettingsModel.Instance.CombatFireEntryTime.Value;
                 BobbysMusicPlayerPlugin.LogSource.LogInfo("Player fired. Combat timer set to " + SettingsModel.Instance.CombatFireEntryTime.Value);
             }
             else
@@ -75,15 +77,16 @@ namespace BobbysMusicPlayer.Patches
         private static bool Prefix(Player __instance, EDamageType type)
         {
             Player player = Singleton<GameWorld>.Instance.MainPlayer;
+            AudioManager audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
             if (__instance != player)
             {
                 return true;
             }
             if (DamageTypeList.Contains(type.ToString()))
             {
-                if (AudioManager.combatTimer < SettingsModel.Instance.CombatHitEntryTime.Value)
+                if (audio.combatTimer < SettingsModel.Instance.CombatHitEntryTime.Value)
                 {
-                    AudioManager.combatTimer = SettingsModel.Instance.CombatHitEntryTime.Value;
+                    audio.combatTimer = SettingsModel.Instance.CombatHitEntryTime.Value;
                     BobbysMusicPlayerPlugin.LogSource.LogInfo("Player hit. Combat timer set to " + SettingsModel.Instance.CombatHitEntryTime.Value);
                 }
                 else
@@ -110,6 +113,7 @@ namespace BobbysMusicPlayer.Patches
         private static bool Prefix(Vector3 shotPosition)
         {
             Player player = Singleton<GameWorld>.Instance.MainPlayer;
+            AudioManager _audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
             float distance = Vector3.Distance(player.PlayerBones.BodyTransform.position, shotPosition);
             if (distance < SettingsModel.Instance.ShotNearCutoff.Value)
             {
@@ -118,10 +122,10 @@ namespace BobbysMusicPlayer.Patches
                     PlayerFiringPatch.playerFired = false;
                     return true;
                 }
-                if (AudioManager.combatTimer < SettingsModel.Instance.CombatDangerEntryTime.Value)
+                if (_audio.combatTimer < SettingsModel.Instance.CombatDangerEntryTime.Value)
                 {
-                    AudioManager.combatTimer = SettingsModel.Instance.CombatDangerEntryTime.Value;
-                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Player shot near. Combat Timer set to " + AudioManager.combatTimer);
+                    _audio.combatTimer = SettingsModel.Instance.CombatDangerEntryTime.Value;
+                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Player shot near. Combat Timer set to " + _audio.combatTimer);
                 }
             }
             else
@@ -142,6 +146,7 @@ namespace BobbysMusicPlayer.Patches
         private static bool Prefix(Vector3 grenadePosition)
         {
             Player player = Singleton<GameWorld>.Instance.MainPlayer;
+            AudioManager audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
             float distance = Vector3.Distance(player.PlayerBones.BodyTransform.position, grenadePosition);
             if (distance < SettingsModel.Instance.GrenadeNearCutoff.Value)
             {
@@ -150,10 +155,10 @@ namespace BobbysMusicPlayer.Patches
                     PlayerFiringPatch.playerFired = false;
                     return true;
                 }
-                if (AudioManager.combatTimer < SettingsModel.Instance.CombatGrenadeEntryTime.Value)
+                if (audio.combatTimer < SettingsModel.Instance.CombatGrenadeEntryTime.Value)
                 {
-                    AudioManager.combatTimer = SettingsModel.Instance.CombatGrenadeEntryTime.Value;
-                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Grenade explosion near. Combat Timer set to " + AudioManager.combatTimer);
+                    audio.combatTimer = SettingsModel.Instance.CombatGrenadeEntryTime.Value;
+                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Grenade explosion near. Combat Timer set to " + audio.combatTimer);
                 }
             }
             else

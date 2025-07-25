@@ -33,6 +33,7 @@ namespace BobbysMusicPlayer.Models
 		public ConfigEntry<float> GrenadeNearCutoff { get; set; }
 		public ConfigEntry<float> IndoorMultiplier { get; set; }
 		public ConfigEntry<float> HeadsetMultiplier { get; set; }
+		public ConfigEntry<float> SmoothChangeEnv { get; set; }
 		
 #if DEBUG
 		public ConfigEntry<KeyboardShortcut> KeyBind;
@@ -235,6 +236,12 @@ namespace BobbysMusicPlayer.Models
                 0.75f,
                 new ConfigDescription("When wearing an active headset, all in-raid music volume will be multiplied by this value.\nI recommend setting this somewhere between 0 and 1, since the game is much noisier without an active headset", 
 	                new AcceptableValueRange<float>(0f, 2f)));
+            
+            SmoothChangeEnv = configFile.Bind(
+	            generalSettings,
+	            "In-Raid Soundtrack volume - Smooth change environment multiply", 3f,
+	            new ConfigDescription("Multiplier affecting the switching speed Environment type", 
+		            new AcceptableValueRange<float>(0f, 100f)));
 		}
 		
 		/// <summary>

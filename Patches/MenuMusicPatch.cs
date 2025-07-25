@@ -34,7 +34,8 @@ namespace BobbysMusicPlayer.Patches
         [PatchPrefix]
         static bool Prefix(AudioSource ___audioSource_3, AudioClip[] ___audioClip_0)
         {
-            AudioManager.menuMusicAudioSource = ___audioSource_3;
+            AudioManager audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
+            audio.menuMusicAudioSource = ___audioSource_3;
             try
             {
                 if (menuTrackList.IsNullOrEmpty())
@@ -64,11 +65,11 @@ namespace BobbysMusicPlayer.Patches
                     }
 
                     Singleton<GUISounds>.Instance.method_7();
-                    AudioManager.menuMusicAudioSource.clip = trackArray[trackCounter];
-                    AudioManager.menuMusicAudioSource.Play();
+                    audio.menuMusicAudioSource.clip = trackArray[trackCounter];
+                    audio.menuMusicAudioSource.Play();
                     trackCounter++;
                     MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(
-                        AudioManager.menuMusicAudioSource.clip.length, Singleton<GUISounds>.Instance.method_3);
+                        audio.menuMusicAudioSource.clip.length, Singleton<GUISounds>.Instance.method_3);
                     
                     if (trackCounter >= trackArray.Count)
                     {
@@ -83,12 +84,12 @@ namespace BobbysMusicPlayer.Patches
                     }
 
                     Singleton<GUISounds>.Instance.method_7();
-                    AudioManager.menuMusicAudioSource.clip = trackArray[trackCounter];
-                    AudioManager.menuMusicAudioSource.Play();
+                    audio.menuMusicAudioSource.clip = trackArray[trackCounter];
+                    audio.menuMusicAudioSource.Play();
                     BobbysMusicPlayerPlugin.LogSource.LogInfo("Playing " + trackNamesArray[trackCounter]);
                     trackCounter++;
                     MenuMusicJukebox.menuMusicCoroutine = StaticManager.Instance.WaitSeconds(
-                        AudioManager.menuMusicAudioSource.clip.length, Singleton<GUISounds>.Instance.method_3);
+                        audio.menuMusicAudioSource.clip.length, Singleton<GUISounds>.Instance.method_3);
                     
                     if (trackCounter >= trackArray.Count)
                     {
