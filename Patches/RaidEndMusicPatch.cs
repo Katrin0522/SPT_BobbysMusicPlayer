@@ -12,29 +12,18 @@ namespace BobbysMusicPlayer.Patches
 {
     public class RaidEndMusicPatch : ModulePatch
     {
-        internal static List<string> deathMusicList = new();
-        internal static List<string> extractMusicList = new();
-        private static Dictionary<EEndGameSoundType, List<string>> raidEndDictionary = new()
-        {
-            [EEndGameSoundType.ArenaLose] = deathMusicList,
-            [EEndGameSoundType.ArenaWin] = extractMusicList
+        internal static List<string> DeathMusicList = new();
+        internal static List<string> ExtractMusicList = new();
+        private static Dictionary<EEndGameSoundType, List<string>> raidEndDictionary = new() {
+            [EEndGameSoundType.ArenaWin] = ExtractMusicList,
+            [EEndGameSoundType.ArenaLose] = DeathMusicList
         };
         
         private static AudioClip raidEndClip;
 
-        //TODO: Move all audio action into separate class
         protected override MethodBase GetTargetMethod()
         {
             return AccessTools.Method(typeof(UISoundsWrapper), nameof(UISoundsWrapper.GetEndGameClip));
-        }
-
-        private static void LoadNextTrack(EEndGameSoundType soundType)
-        {
-            string raidEndTrack = raidEndDictionary[soundType][Range(0, raidEndDictionary[soundType].Count)];
-            raidEndClip = AudioManager.RequestAudioClip(raidEndTrack);
-            
-            string trackName = Path.GetFileName(raidEndTrack);
-            Logger.LogInfo(trackName + " assigned to " + soundType);
         }
 
         [PatchPrefix]
@@ -54,6 +43,15 @@ namespace BobbysMusicPlayer.Patches
             }
             
             return true;
+        }
+        
+        private static void LoadNextTrack(EEndGameSoundType soundType)
+        {
+            string raidEndTrack = raidEndDictionary[soundType][Range(0, raidEndDictionary[soundType].Count)];
+            raidEndClip = AudioManager.RequestAudioClip(raidEndTrack);
+            
+            string trackName = Path.GetFileName(raidEndTrack);
+            BobbysMusicPlayerPlugin.LogSource.LogInfo(trackName + " assigned to " + soundType);
         }
     }
 }

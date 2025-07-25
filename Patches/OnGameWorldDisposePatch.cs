@@ -18,7 +18,6 @@ namespace BobbysMusicPlayer.Patches
         [PatchPrefix]
         static void Prefix()
         {
-            
 #if DEBUG
             OverlayDebug.Instance.Disable();
 #endif

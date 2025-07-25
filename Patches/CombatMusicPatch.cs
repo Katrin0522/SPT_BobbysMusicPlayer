@@ -78,7 +78,7 @@ namespace BobbysMusicPlayer.Patches
         }
         
         [PatchPrefix]
-        private static bool Prefix(Player __instance, EDamageType typeDamage)
+        private static bool Prefix(Player __instance, EDamageType type)
         {
             Player player = Singleton<GameWorld>.Instance.MainPlayer;
             AudioManager audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
@@ -88,7 +88,7 @@ namespace BobbysMusicPlayer.Patches
                 return true;
             }
             
-            if (GlobalData.DamageTypeList.Contains(typeDamage))
+            if (GlobalData.DamageTypeList.Contains(type))
             {
                 if (audio.CombatTimer < SettingsModel.Instance.CombatHitEntryTime.Value)
                 {
