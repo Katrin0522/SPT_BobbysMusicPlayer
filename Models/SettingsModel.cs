@@ -34,6 +34,7 @@ namespace BobbysMusicPlayer.Models
 		public ConfigEntry<float> IndoorMultiplier { get; set; }
 		public ConfigEntry<float> HeadsetMultiplier { get; set; }
 		public ConfigEntry<float> TransitionEnvSpeed { get; set; }
+		public ConfigEntry<float> TransitionHeadsetSpeed { get; set; }
 		
 #if DEBUG
 		public ConfigEntry<KeyboardShortcut> KeyBind;
@@ -224,6 +225,18 @@ namespace BobbysMusicPlayer.Models
                 new AcceptableValueRange<float>(0f, 2f), 
                 new ConfigurationManagerAttributes { Order = 0 }));
             
+            TransitionEnvSpeed = configFile.Bind(
+	            dynamicSoundtrackSettings,
+	            "Transition Speed between Environment", 3f,
+	            new ConfigDescription("Controls how smoothly audio volume adapts when the player's environment changes.\nHigher values result in faster transitions between environment-based volume multipliers.\nFor example, a value of 3 means the transition will be ~95% complete after 1 second.", 
+		            new AcceptableValueRange<float>(0f, 25f)));
+            
+            TransitionHeadsetSpeed = configFile.Bind(
+	            dynamicSoundtrackSettings,
+	            "Transition Speed between headset state", 3f,
+	            new ConfigDescription("Controls how smoothly audio volume adapts when the player's headset changes.\nHigher values result in faster transitions between volume multipliers.\nFor example, a value of 3 means the transition will be ~95% complete after 1 second.", 
+		            new AcceptableValueRange<float>(0f, 25f)));
+            
             IndoorMultiplier = configFile.Bind(
                 generalSettings,
                 "In-Raid Soundtrack volume - Indoor multiplier", 0.75f,
@@ -237,11 +250,7 @@ namespace BobbysMusicPlayer.Models
                 new ConfigDescription("When wearing an active headset, all in-raid music volume will be multiplied by this value.\nI recommend setting this somewhere between 0 and 1, since the game is much noisier without an active headset", 
 	                new AcceptableValueRange<float>(0f, 2f)));
             
-            TransitionEnvSpeed = configFile.Bind(
-	            dynamicSoundtrackSettings,
-	            "In-Raid Soundtrack volume - Smooth change environment multiply", 3f,
-	            new ConfigDescription("Controls how smoothly audio volume adapts when the player's environment changes.\nHigher values result in faster transitions between environment-based volume multipliers.\nFor example, a value of 3 means the transition will be ~95% complete after 1 second.", 
-		            new AcceptableValueRange<float>(0f, 25f)));
+            
 		}
 		
 		/// <summary>

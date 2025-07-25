@@ -175,7 +175,7 @@ namespace BobbysMusicPlayer.Utils
             
             //Fix sharp switching by headset volume
             HeadsetMultiplier = HeadsetMultiplier.SmoothTowards(_targetHeadsetMultiplier,
-                Time.deltaTime, SettingsModel.Instance.TransitionEnvSpeed.Value);
+                Time.deltaTime, SettingsModel.Instance.TransitionHeadsetSpeed.Value);
             
             var currentEnvironment = Singleton<GameWorld>.Instance.MainPlayer.Environment;
             
