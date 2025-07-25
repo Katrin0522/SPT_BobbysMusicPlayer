@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using EFT;
 using EFT.UI;
 using UnityEngine;
 
@@ -59,6 +60,16 @@ namespace BobbysMusicPlayer.Data
         public static Dictionary<EnvironmentType, float> EnvironmentDict = new() {
             { EnvironmentType.Outdoor, 1f },
             { EnvironmentType.Indoor, 1f }
+        };
+        
+        public static List<EDamageType> DamageTypeList = new()
+        {
+            EDamageType.Explosion,
+            EDamageType.Blunt,
+            EDamageType.Sniper,
+            EDamageType.Bullet,
+            EDamageType.Melee,
+            EDamageType.Landmine
         };
     }
 }
