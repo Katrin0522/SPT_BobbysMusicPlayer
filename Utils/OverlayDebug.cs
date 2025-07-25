@@ -56,26 +56,26 @@ namespace BobbysMusicPlayer.Utils
             
             _overlayText.text = $"InRaid -> {BobbysMusicPlayerPlugin.InRaid}\n" +
                                 $"\n" +
-                                $"Combat Timer -> {_audio.combatTimer}" + 
+                                $"Combat Timer -> {_audio.CombatTimer}" + 
                                 $"\n" +
-                                $"headsetMultiplier -> {_audio.headsetMultiplier}" + 
+                                $"headsetMultiplier -> {_audio.HeadsetMultiplier}" + 
                                 $"\n" +
-                                $"Current Env Multiplier -> {_audio.currentEnvironmentMultiplier}" + 
+                                $"Current Env Multiplier -> {_audio.CurrentEnvironmentMultiplier}" + 
                                 $"\n" +
                                 $"[CombatLerp Volume Data]\n" +
-                                $"CombatAudioSource Volume -> {Mathf.Lerp(0f, _audio.combatMusicVolume, _audio.lerp)}\n" +
-                                $"SoundtrackAudioSource Volume -> {Mathf.Lerp(_audio.soundtrackVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*_audio.soundtrackVolume, _audio.lerp)}\n" +
-                                $"SpawnAudioSource Volume -> {Mathf.Lerp(_audio.spawnMusicVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*_audio.spawnMusicVolume, _audio.lerp)}\n" +
+                                $"CombatAudioSource Volume -> {Mathf.Lerp(0f, _audio.CombatMusicVolume, _audio.Lerp)}\n" +
+                                $"SoundtrackAudioSource Volume -> {Mathf.Lerp(_audio.SoundtrackVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*_audio.SoundtrackVolume, _audio.Lerp)}\n" +
+                                $"SpawnAudioSource Volume -> {Mathf.Lerp(_audio.SpawnMusicVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*_audio.SpawnMusicVolume, _audio.Lerp)}\n" +
                                 $"\n" +
                                 $"[VolumeSetter Volume Data]\n" +
-                                $"CombatAudioSource Volume -> {_audio.combatMusicVolume}\n" +
-                                $"SoundtrackAudioSource Volume -> {_audio.soundtrackVolume}\n" +
-                                $"SpawnAudioSource Volume -> {_audio.spawnMusicVolume}\n" +
+                                $"CombatAudioSource Volume -> {_audio.CombatMusicVolume}\n" +
+                                $"SoundtrackAudioSource Volume -> {_audio.SoundtrackVolume}\n" +
+                                $"SpawnAudioSource Volume -> {_audio.SpawnMusicVolume}\n" +
                                 $"\n" +
                                 $"[AudioSource is playing?]\n" +
-                                $"CombatAudioSource isPlay? -> {_audio.combatAudioSource?.isPlaying}\n" +
-                                $"SoundtrackAudioSource isPlay? -> {_audio.soundtrackAudioSource?.isPlaying}\n" +
-                                $"SpawnAudioSource isPlay? -> {_audio.spawnAudioSource?.isPlaying}\n";
+                                $"CombatAudioSource isPlay? -> {_audio.CombatAudioSource?.isPlaying}\n" +
+                                $"SoundtrackAudioSource isPlay? -> {_audio.SoundtrackAudioSource?.isPlaying}\n" +
+                                $"SpawnAudioSource isPlay? -> {_audio.SpawnAudioSource?.isPlaying}\n";
                                 
         }
 

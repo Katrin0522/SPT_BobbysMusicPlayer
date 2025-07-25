@@ -43,6 +43,7 @@
     <Compile Include="Data\GlobalData.cs" />
     <Compile Include="Data\PathData.cs" />
     <Compile Include="Extensions\ConfigurationManagerAttributes.cs" />
+    <Compile Include="Extensions\SmoothExtensions.cs" />
     <Compile Include="Jukebox\MenuMusicJukebox.cs" />
     <Compile Include="Jukebox\SoundtrackJukebox.cs" />
     <Compile Include="Models\SettingsModel.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Utils\AudioManager.cs" />
     <Compile Include="Utils\ESoundtrackPlaylist.cs" />
     <Compile Include="Utils\OverlayDebug.cs" />
+    <Compile Include="Utils\SmoothValue.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0Harmony">

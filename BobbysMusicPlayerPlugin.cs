@@ -68,7 +68,7 @@ namespace BobbysMusicPlayer
                 }
                 SoundtrackJukebox.soundtrackCalled = false;
                 _audio.HasStartedLoadingAudio = false;
-                _audio.spawnTrackHasPlayed = false;
+                _audio.SpawnTrackHasPlayed = false;
                 return;
             }
             
@@ -85,6 +85,9 @@ namespace BobbysMusicPlayer
             {
                 return;
             }
+#if DEBUG
+            OverlayDebug.Instance.UpdateOverlay();
+#endif
             
             _audio.PlaySpawnMusic();
             _audio.VolumeSetter();
@@ -93,7 +96,6 @@ namespace BobbysMusicPlayer
             SoundtrackJukebox.CheckSoundtrackControls();
             SoundtrackJukebox.soundtrackCalled = true;
             SoundtrackJukebox.PlaySoundtrack();
-
         }
 
         public AudioManager GetAudio() => _audio;

@@ -21,26 +21,26 @@ namespace BobbysMusicPlayer.Jukebox
         public static void CheckMenuMusicControls()
         {
             AudioManager audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
-            if (SoundtrackJukebox.soundtrackCalled || audio.menuMusicAudioSource == null) return;
+            if (SoundtrackJukebox.soundtrackCalled || audio.MenuMusicAudioSource == null) return;
             
             
-            if (Input.GetKeyDown(SettingsModel.Instance.PauseTrack.Value.MainKey) && audio.menuMusicAudioSource.isPlaying)
+            if (Input.GetKeyDown(SettingsModel.Instance.PauseTrack.Value.MainKey) && audio.MenuMusicAudioSource.isPlaying)
             {
-                audio.menuMusicAudioSource.Pause();
+                audio.MenuMusicAudioSource.Pause();
                 StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                pausedTime = audio.menuMusicAudioSource.clip.length - audio.menuMusicAudioSource.time;
+                pausedTime = audio.MenuMusicAudioSource.clip.length - audio.MenuMusicAudioSource.time;
                 paused = true;
             }
             else if (Input.GetKeyDown(SettingsModel.Instance.PauseTrack.Value.MainKey) && paused)
             {
-                audio.menuMusicAudioSource.UnPause();
+                audio.MenuMusicAudioSource.UnPause();
                 menuMusicCoroutine = StaticManager.Instance.WaitSeconds(pausedTime, new Action(Singleton<GUISounds>.Instance.method_3));
                 paused = false;
             }
             
             if (Input.GetKeyDown(SettingsModel.Instance.RestartTrack.Value.MainKey))
             {
-                audio.menuMusicAudioSource.Stop();
+                audio.MenuMusicAudioSource.Stop();
                 if (MenuMusicPatch.trackCounter != 0)
                 {
                     MenuMusicPatch.trackCounter--;
@@ -56,7 +56,7 @@ namespace BobbysMusicPlayer.Jukebox
             
             if (Input.GetKeyDown(SettingsModel.Instance.PreviousTrack.Value.MainKey))
             {
-                audio.menuMusicAudioSource.Stop();
+                audio.MenuMusicAudioSource.Stop();
                 MenuMusicPatch.trackCounter -= 2;
                 if (MenuMusicPatch.trackCounter < 0)
                 {
@@ -69,7 +69,7 @@ namespace BobbysMusicPlayer.Jukebox
             
             if (Input.GetKeyDown(SettingsModel.Instance.SkipTrack.Value.MainKey))
             {
-                audio.menuMusicAudioSource.Stop();
+                audio.MenuMusicAudioSource.Stop();
                 StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
                 paused = false;
                 Singleton<GUISounds>.Instance.method_3();

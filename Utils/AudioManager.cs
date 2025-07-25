@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using BobbysMusicPlayer.Data;
+using BobbysMusicPlayer.Extensions;
 using BobbysMusicPlayer.Models;
 using BobbysMusicPlayer.Patches;
 using Comfort.Common;
@@ -17,47 +18,58 @@ namespace BobbysMusicPlayer.Utils
 {
     public class AudioManager
     {
-        public AudioSource soundtrackAudioSource;
-        public AudioSource spawnAudioSource;
-        public AudioSource combatAudioSource;
-        public AudioSource menuMusicAudioSource;
+        public AudioSource SoundtrackAudioSource;
+        public AudioSource SpawnAudioSource;
+        public AudioSource CombatAudioSource;
+        public AudioSource MenuMusicAudioSource;
         
         public bool HasStartedLoadingAudio;
         public bool HasFinishedLoadingAudio;
-        public bool spawnTrackHasPlayed;
+        public bool SpawnTrackHasPlayed;
         
-        private List<string> combatMusicTrackList = new();
-        private List<string> ambientTrackListToPlay = new();
-        private List<string> spawnTrackList = new();
-        private List<string> defaultTrackList = new();
+        private List<string> _combatMusicTrackList = new();
+        private List<string> _ambientTrackListToPlay = new();
+        private List<string> _spawnTrackList = new();
+        private List<string> _defaultTrackList = new();
         
-        private List<AudioClip> combatMusicClipList = new();
-        private List<AudioClip> spawnTrackClipList = new();
-        internal List<string> ambientTrackNamesArray = new();
-        internal List<AudioClip> ambientTrackArray = new();
+        private List<AudioClip> _combatMusicClipList = new();
+        private List<AudioClip> _spawnTrackClipList = new();
+        public List<string> AmbientTrackNamesArray = new();
+        public List<AudioClip> AmbientTrackArray = new();
         
-        internal float targetEnvironmentMultiplier;
-        internal float currentEnvironmentMultiplier;
-        internal float lerp;
-        internal float combatTimer;
-        internal float soundtrackVolume;
-        internal float spawnMusicVolume;
-        internal float combatMusicVolume;
-        internal float headsetMultiplier = 1f;
+        public float Lerp;
+        public float CurrentEnvironmentMultiplier;
+        public float CombatTimer;
+        public float SoundtrackVolume;
+        public float SpawnMusicVolume;
+        public float CombatMusicVolume;
+        public float HeadsetMultiplier = 1f;
         
-        private EnvironmentType lastEnvironment;
+        private float _targetEnvironmentMultiplier;
+        private float _targetHeadsetMultiplier;
+        private EnvironmentType _lastEnvironment;
 
         public void Init(GameObject mainObj)
         {
-            if (soundtrackAudioSource == null)
+            if (SoundtrackAudioSource == null)
             {
-                soundtrackAudioSource = mainObj.AddComponent<AudioSource>();
-                spawnAudioSource = mainObj.AddComponent<AudioSource>();
-                combatAudioSource = mainObj.AddComponent<AudioSource>();
+                SoundtrackAudioSource = mainObj.AddComponent<AudioSource>();
+                SpawnAudioSource = mainObj.AddComponent<AudioSource>();
+                CombatAudioSource = mainObj.AddComponent<AudioSource>();
                 BobbysMusicPlayerPlugin.LogSource.LogWarning("AudioSources added to game");
             }
 
             LoadMusic();
+        }
+        
+        public void SetClip(AudioSource audiosource, AudioClip clip)
+        {
+            audiosource.clip = clip;
+        }
+
+        private void AdjustVolume(AudioSource audiosource, float volume)
+        {
+            audiosource.volume = volume;
         }
         
         /// <summary>
@@ -73,15 +85,15 @@ namespace BobbysMusicPlayer.Utils
                 MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(PathData.CustomMenuMusicSoundsMissing));
             }
             
-            defaultTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackDefault));
-            if (defaultTrackList.IsNullOrEmpty() && Directory.Exists(PathData.SoundtrackSoundsMissing))
+            _defaultTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackDefault));
+            if (_defaultTrackList.IsNullOrEmpty() && Directory.Exists(PathData.SoundtrackSoundsMissing))
             {
-                defaultTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackSoundsMissing));
+                _defaultTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackSoundsMissing));
             }
             
-            combatMusicTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackCombat));
+            _combatMusicTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackCombat));
             
-            spawnTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackSpawn));
+            _spawnTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackSpawn));
             
             RaidEndMusicPatch.deathMusicList.AddRange(Directory.GetFiles(PathData.SoundtrackDeath));
             RaidEndMusicPatch.extractMusicList.AddRange(Directory.GetFiles(PathData.SoundtrackExtract));
@@ -101,56 +113,53 @@ namespace BobbysMusicPlayer.Utils
         /// </summary>
         public async void PrepareRaidAudioClips()
         {
-            if (!HasStartedLoadingAudio)
+            try
             {
-                HasStartedLoadingAudio = true;
-                
-                if (!defaultTrackList.IsNullOrEmpty())
+                if (!HasStartedLoadingAudio)
                 {
-                    LoadAmbientSoundtrackClips();
-                }
+                    HasStartedLoadingAudio = true;
                 
-                if (!spawnTrackList.IsNullOrEmpty())
-                {
-                    spawnTrackClipList.Clear();
-                    foreach (var track in spawnTrackList)
+                    if (!_defaultTrackList.IsNullOrEmpty())
                     {
-                        spawnTrackClipList.Add(await AsyncRequestAudioClip(track));
-                        BobbysMusicPlayerPlugin.LogSource.LogInfo("RequestAudioClip called for spawnTrackClip");
+                        LoadAmbientSoundtrackClips();
                     }
-                    spawnTrackHasPlayed = false;
-                }
                 
-                if (!combatMusicTrackList.IsNullOrEmpty())
-                {
-                    BobbysMusicPlayerPlugin.LogSource.LogInfo("Load music to combat");
-                    
-                    // The next 4 lines prevent any issues that could be caused by exiting a raid before the combat timer ends
-                    combatTimer = 0f;
-                    lerp = 0;
-                    combatAudioSource.Stop();
-                    combatAudioSource.loop = false;
-                    
-                    combatMusicClipList.Clear();
-                    foreach (var track in combatMusicTrackList)
+                    if (!_spawnTrackList.IsNullOrEmpty())
                     {
-                        combatMusicClipList.Add(await AsyncRequestAudioClip(track));
+                        _spawnTrackClipList.Clear();
+                        foreach (var track in _spawnTrackList)
+                        {
+                            _spawnTrackClipList.Add(await AsyncRequestAudioClip(track));
+                            BobbysMusicPlayerPlugin.LogSource.LogInfo("RequestAudioClip called for spawnTrackClip");
+                        }
+                        SpawnTrackHasPlayed = false;
                     }
+                
+                    if (!_combatMusicTrackList.IsNullOrEmpty())
+                    {
+                        BobbysMusicPlayerPlugin.LogSource.LogInfo("Load music to combat");
                     
-                    combatAudioSource.clip = combatMusicClipList[Range(0, combatMusicClipList.Count)];
-                    BobbysMusicPlayerPlugin.LogSource.LogInfo($"Music in combat loaded! {combatAudioSource.clip.length}");
+                        // The next 4 lines prevent any issues that could be caused by exiting a raid before the combat timer ends
+                        CombatTimer = 0f;
+                        Lerp = 0;
+                        CombatAudioSource.Stop();
+                        CombatAudioSource.loop = false;
+                    
+                        _combatMusicClipList.Clear();
+                        foreach (var track in _combatMusicTrackList)
+                        {
+                            _combatMusicClipList.Add(await AsyncRequestAudioClip(track));
+                        }
+                    
+                        CombatAudioSource.clip = _combatMusicClipList[Range(0, _combatMusicClipList.Count)];
+                        BobbysMusicPlayerPlugin.LogSource.LogInfo($"Music in combat loaded! {CombatAudioSource.clip.length}");
+                    }
                 }
             }
-        }
-        
-        public void SetClip(AudioSource audiosource, AudioClip clip)
-        {
-            audiosource.clip = clip;
-        }
-        
-        public void AdjustVolume(AudioSource audiosource, float volume)
-        {
-            audiosource.volume = volume;
+            catch (Exception e)
+            {
+                BobbysMusicPlayerPlugin.LogSource.LogError($"[PrepareRaidAudioClips] Throw error {e}");
+            }
         }
         
         /// <summary>
@@ -162,34 +171,38 @@ namespace BobbysMusicPlayer.Utils
             CompoundItem headwear = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Headwear).ContainedItem as CompoundItem;
             HeadphonesItemClass headset = Singleton<GameWorld>.Instance.MainPlayer.Equipment.GetSlot(EquipmentSlot.Earpiece).ContainedItem as HeadphonesItemClass ?? ((headwear != null) ? headwear.GetAllItemsFromCollection().OfType<HeadphonesItemClass>().FirstOrDefault<HeadphonesItemClass>() : null);
             
-            headsetMultiplier = headset != null ? SettingsModel.Instance.HeadsetMultiplier.Value : 1f;
+            _targetHeadsetMultiplier = headset != null ? SettingsModel.Instance.HeadsetMultiplier.Value : 1f;
             
-            EnvironmentType currentEnvironment = Singleton<GameWorld>.Instance.MainPlayer.Environment;
+            //Fix sharp switching by headset volume
+            HeadsetMultiplier = HeadsetMultiplier.SmoothTowards(_targetHeadsetMultiplier,
+                Time.deltaTime, SettingsModel.Instance.TransitionEnvSpeed.Value);
             
-            if (currentEnvironment != lastEnvironment)
+            var currentEnvironment = Singleton<GameWorld>.Instance.MainPlayer.Environment;
+            
+            if (currentEnvironment != _lastEnvironment)
             {
-                lastEnvironment = currentEnvironment;
-                targetEnvironmentMultiplier = GlobalData.EnvironmentDict[currentEnvironment];
+                _lastEnvironment = currentEnvironment;
+                _targetEnvironmentMultiplier = GlobalData.EnvironmentDict[currentEnvironment];
             }
             
-            currentEnvironmentMultiplier = Mathf.Lerp(currentEnvironmentMultiplier, targetEnvironmentMultiplier, Time.deltaTime * SettingsModel.Instance.SmoothChangeEnv.Value);
-
+            //Fix sharp switching of Environment
+            CurrentEnvironmentMultiplier = CurrentEnvironmentMultiplier.SmoothTowards(_targetEnvironmentMultiplier,
+                Time.deltaTime, SettingsModel.Instance.TransitionEnvSpeed.Value);
             
             // Each of the in-raid AudioSources' volumes are calculated by multiplying their configurable volumes with the indoor multiplier and the headset multiplier.
-            // TODO: Fix sharp switching of Environment
-            soundtrackVolume = SettingsModel.Instance.SoundtrackVolume.Value * currentEnvironmentMultiplier * headsetMultiplier;
-            spawnMusicVolume = SettingsModel.Instance.SpawnMusicVolume.Value * currentEnvironmentMultiplier * headsetMultiplier;
-            combatMusicVolume = SettingsModel.Instance.CombatMusicVolume.Value * currentEnvironmentMultiplier * headsetMultiplier;
+            SoundtrackVolume = SettingsModel.Instance.SoundtrackVolume.Value * CurrentEnvironmentMultiplier * HeadsetMultiplier;
+            SpawnMusicVolume = SettingsModel.Instance.SpawnMusicVolume.Value * CurrentEnvironmentMultiplier * HeadsetMultiplier;
+            CombatMusicVolume = SettingsModel.Instance.CombatMusicVolume.Value * CurrentEnvironmentMultiplier * HeadsetMultiplier;
 
             // We check if the combat AudioSource is playing so that the CombatLerp method can do its job adjusting the ambient soundtrack and spawn music AudioSources
-            if (!combatAudioSource.isPlaying)
+            if (!CombatAudioSource.isPlaying)
             {
-                AdjustVolume(soundtrackAudioSource, soundtrackVolume); 
-                AdjustVolume(spawnAudioSource, spawnMusicVolume);
+                AdjustVolume(SoundtrackAudioSource, SoundtrackVolume); 
+                AdjustVolume(SpawnAudioSource, SpawnMusicVolume);
             }
-            if (lerp >= 1)
+            if (Lerp >= 1)
             {
-                AdjustVolume(combatAudioSource, combatMusicVolume);
+                AdjustVolume(CombatAudioSource, CombatMusicVolume);
             }   
         }
         
@@ -198,37 +211,37 @@ namespace BobbysMusicPlayer.Utils
         /// </summary>
         public void CombatMusic()
         {
-            if (!combatMusicTrackList.IsNullOrEmpty())
+            if (!_combatMusicTrackList.IsNullOrEmpty())
             {
-                if (combatTimer > 0)
+                if (CombatTimer > 0)
                 {
-                    if (!combatAudioSource.isPlaying && combatAudioSource.loop == false)
+                    if (!CombatAudioSource.isPlaying && CombatAudioSource.loop == false)
                     {
-                        combatAudioSource.loop = true;
-                        combatAudioSource.Play();
+                        CombatAudioSource.loop = true;
+                        CombatAudioSource.Play();
                     }
-                    if (lerp <= 1)
+                    if (Lerp <= 1)
                     {
                         CombatLerp();
-                        lerp += Time.deltaTime / SettingsModel.Instance.CombatInFader.Value;
+                        Lerp += Time.deltaTime / SettingsModel.Instance.CombatInFader.Value;
                     }
-                    combatTimer -= Time.deltaTime;
+                    CombatTimer -= Time.deltaTime;
                 }
                 // When the combat timer runs out, the AudioSource will only stop playing once it's done fading out.
                 // If the player re-enters combat in the middle of fading out, the music will smoothly fade back in from the volume it faded out to.
-                else if (combatTimer <= 0)
+                else if (CombatTimer <= 0)
                 {
-                    if (combatAudioSource.isPlaying)
+                    if (CombatAudioSource.isPlaying)
                     {
-                        combatTimer = 0f;
+                        CombatTimer = 0f;
                         CombatLerp();
-                        lerp -= Time.deltaTime / SettingsModel.Instance.CombatOutFader.Value;
-                        if (lerp <= 0)
+                        Lerp -= Time.deltaTime / SettingsModel.Instance.CombatOutFader.Value;
+                        if (Lerp <= 0)
                         {
-                            combatAudioSource.loop = false;
-                            combatAudioSource.Stop();
+                            CombatAudioSource.loop = false;
+                            CombatAudioSource.Stop();
                             // The combat AudioSource's clip will be randomly selected each time the combat music stops
-                            combatAudioSource.clip = combatMusicClipList[Range(0, combatMusicClipList.Count)];
+                            CombatAudioSource.clip = _combatMusicClipList[Range(0, _combatMusicClipList.Count)];
                         }
                     }
                 }
@@ -240,13 +253,13 @@ namespace BobbysMusicPlayer.Utils
         /// </summary>
         public void PlaySpawnMusic()
         {
-            if (!spawnTrackHasPlayed && !spawnTrackClipList.IsNullOrEmpty())
+            if (!SpawnTrackHasPlayed && !_spawnTrackClipList.IsNullOrEmpty())
             {
-                spawnAudioSource.clip = spawnTrackClipList[Range(0, spawnTrackClipList.Count)];
+                SpawnAudioSource.clip = _spawnTrackClipList[Range(0, _spawnTrackClipList.Count)];
                 BobbysMusicPlayerPlugin.LogSource.LogInfo("spawnAudioSource.clip assigned to spawnTrackClip");
-                spawnAudioSource.Play();
+                SpawnAudioSource.Play();
                 BobbysMusicPlayerPlugin.LogSource.LogInfo("spawnAudioSource playing");
-                spawnTrackHasPlayed = true;
+                SpawnTrackHasPlayed = true;
             }
         }
         
@@ -255,9 +268,9 @@ namespace BobbysMusicPlayer.Utils
         /// </summary>
         private void CombatLerp()
         {
-            AdjustVolume(combatAudioSource, Mathf.Lerp(0f, combatMusicVolume, lerp));
-            AdjustVolume(soundtrackAudioSource, Mathf.Lerp(soundtrackVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*soundtrackVolume, lerp));
-            AdjustVolume(spawnAudioSource, Mathf.Lerp(spawnMusicVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*spawnMusicVolume, lerp));
+            AdjustVolume(CombatAudioSource, Mathf.Lerp(0f, CombatMusicVolume, Lerp));
+            AdjustVolume(SoundtrackAudioSource, Mathf.Lerp(SoundtrackVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*SoundtrackVolume, Lerp));
+            AdjustVolume(SpawnAudioSource, Mathf.Lerp(SpawnMusicVolume, SettingsModel.Instance.AmbientCombatMultiplier.Value*SpawnMusicVolume, Lerp));
         }
         
         /// <summary>
@@ -267,36 +280,36 @@ namespace BobbysMusicPlayer.Utils
         {
             float totalLength = 0f;
             HasFinishedLoadingAudio = false;
-            ambientTrackArray.Clear();
-            ambientTrackNamesArray.Clear();
-            ambientTrackListToPlay.Clear();
+            AmbientTrackArray.Clear();
+            AmbientTrackNamesArray.Clear();
+            _ambientTrackListToPlay.Clear();
             float targetLength = 60f * SettingsModel.Instance.SoundtrackLength.Value;
             BobbysMusicPlayerPlugin.LogSource.LogInfo("Map is " + Singleton<GameWorld>.Instance.MainPlayer.Location + ".");
             if (GlobalData.MapDictionary[Singleton<GameWorld>.Instance.MainPlayer.Location].IsNullOrEmpty() || SettingsModel.Instance.SoundtrackPlaylist.Value == ESoundtrackPlaylist.DefaultPlaylistOnly)
             {
-                ambientTrackListToPlay.AddRange(defaultTrackList);
+                _ambientTrackListToPlay.AddRange(_defaultTrackList);
             }
             else if (SettingsModel.Instance.SoundtrackPlaylist.Value == ESoundtrackPlaylist.CombinedPlaylists)
             {
-                ambientTrackListToPlay.AddRange(defaultTrackList);
-                ambientTrackListToPlay.AddRange(GlobalData.MapDictionary[Singleton<GameWorld>.Instance.MainPlayer.Location]);
+                _ambientTrackListToPlay.AddRange(_defaultTrackList);
+                _ambientTrackListToPlay.AddRange(GlobalData.MapDictionary[Singleton<GameWorld>.Instance.MainPlayer.Location]);
             }
             else if (SettingsModel.Instance.SoundtrackPlaylist.Value == ESoundtrackPlaylist.MapSpecificPlaylistOnly)
             {
-                ambientTrackListToPlay.AddRange(GlobalData.MapDictionary[Singleton<GameWorld>.Instance.MainPlayer.Location]);
+                _ambientTrackListToPlay.AddRange(GlobalData.MapDictionary[Singleton<GameWorld>.Instance.MainPlayer.Location]);
             }
-            while ((totalLength < targetLength) && (!ambientTrackListToPlay.IsNullOrEmpty()))
+            while ((totalLength < targetLength) && (!_ambientTrackListToPlay.IsNullOrEmpty()))
             {
-                int nextRandom = Range(0, ambientTrackListToPlay.Count);
-                string track = ambientTrackListToPlay[nextRandom];
+                int nextRandom = Range(0, _ambientTrackListToPlay.Count);
+                string track = _ambientTrackListToPlay[nextRandom];
                 string trackName = Path.GetFileName(track);
                 AudioClip unityAudioClip = await AsyncRequestAudioClip(track);
-                ambientTrackArray.Add(unityAudioClip);
-                ambientTrackNamesArray.Add(trackName);
-                ambientTrackListToPlay.Remove(track);
+                AmbientTrackArray.Add(unityAudioClip);
+                AmbientTrackNamesArray.Add(trackName);
+                _ambientTrackListToPlay.Remove(track);
                 
                 // Adding the length of each track to totalLength makes sure that the mod loads the minimum number of random tracks to meet the target length.
-                totalLength += ambientTrackArray.Last().length;
+                totalLength += AmbientTrackArray.Last().length;
                 BobbysMusicPlayerPlugin.LogSource.LogInfo(trackName + " has been loaded and added to playlist");
             }
             HasFinishedLoadingAudio = true;
