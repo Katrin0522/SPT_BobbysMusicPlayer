@@ -16,7 +16,9 @@ namespace BobbysMusicPlayer
         public static BobbysMusicPlayerPlugin Instance { get; private set; }
         
         private SettingsModel _settings;
-        private AudioManager _audio;
+        private AudioManager audio;
+        private MenuMusicJukebox menuMusicJukebox;
+        private SoundtrackJukebox soundtrackJukebox;
         
         internal static ManualLogSource LogSource;
         
@@ -34,8 +36,15 @@ namespace BobbysMusicPlayer
             GlobalData.EnvironmentDict[EnvironmentType.Indoor] = _settings.IndoorMultiplier.Value;
             
             //Initialization audio side
-            _audio = new AudioManager();
-            _audio.Init(gameObject);
+            audio = new AudioManager();
+            audio.Init(gameObject);
+
+            soundtrackJukebox = new SoundtrackJukebox();
+            soundtrackJukebox.Init(audio);
+
+            menuMusicJukebox = new MenuMusicJukebox();
+            menuMusicJukebox.Init(audio, soundtrackJukebox);
+            
             
             new MenuMusicPatch().Enable();
             new RaidEndMusicPatch().Enable();
@@ -57,7 +66,12 @@ namespace BobbysMusicPlayer
 
         private void Update()
         {
-            MenuMusicJukebox.CheckMenuMusicControls();
+            if (_settings.KeyBind.Value.IsDown())
+            {
+                audio.PlaySpawnMusic(false);
+            }
+            
+            menuMusicJukebox.CheckMenuMusicControls();
             
             if (!InRaid)
             {
@@ -66,9 +80,9 @@ namespace BobbysMusicPlayer
                     MenuMusicPatch.LoadAudioClips();
                     UISoundsPatch.LoadUIClips();
                 }
-                SoundtrackJukebox.soundtrackCalled = false;
-                _audio.HasStartedLoadingAudio = false;
-                _audio.SpawnTrackHasPlayed = false;
+                soundtrackJukebox.SoundtrackCalled = false;
+                audio.HasStartedLoadingAudio = false;
+                audio.SpawnTrackHasPlayed = false;
                 return;
             }
             
@@ -79,20 +93,21 @@ namespace BobbysMusicPlayer
             
             MenuMusicPatch.HasReloadedAudio = false;
             
-            _audio.PrepareRaidAudioClips();
+            audio.PrepareRaidAudioClips();
 #if DEBUG
             OverlayDebug.Instance.UpdateOverlay();
 #endif
             
-            _audio.PlaySpawnMusic();
-            _audio.VolumeSetter();
-            _audio.CombatMusic();
+            audio.PlaySpawnMusic();
+            audio.VolumeSetter();
+            audio.CombatMusic();
             
-            SoundtrackJukebox.CheckSoundtrackControls();
-            SoundtrackJukebox.soundtrackCalled = true;
-            SoundtrackJukebox.PlaySoundtrack();
+            soundtrackJukebox.CheckSoundtrackControls();
+            soundtrackJukebox.SoundtrackCalled = true;
+            soundtrackJukebox.PlaySoundtrack();
         }
 
-        public AudioManager GetAudio() => _audio;
+        public AudioManager GetAudio() => audio;
+        public MenuMusicJukebox GetMenuMusicJukeBox() => menuMusicJukebox;
     }
 }

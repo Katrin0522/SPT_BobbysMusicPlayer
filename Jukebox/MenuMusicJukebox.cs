@@ -9,71 +9,108 @@ using UnityEngine;
 
 namespace BobbysMusicPlayer.Jukebox
 {
-    public class MenuMusicJukebox : MonoBehaviour
+    public class MenuMusicJukebox
     {
-        internal static Coroutine menuMusicCoroutine;
+        public Coroutine Coroutine;
+        
+        private AudioManager audio;
+        private SoundtrackJukebox soundtrackJukebox;
+        
         private static bool paused;
         private static float pausedTime;
+
+        public void Init(AudioManager audio, SoundtrackJukebox soundtrackJukebox)
+        {
+            this.audio = audio;
+            this.soundtrackJukebox = soundtrackJukebox;
+        }
         
         /// <summary>
         /// This method is responsible for handling the "Jukebox" controls of the Main Menu
         /// </summary>
-        public static void CheckMenuMusicControls()
+        public void CheckMenuMusicControls()
         {
-            AudioManager audio = BobbysMusicPlayerPlugin.Instance.GetAudio();
-            if (SoundtrackJukebox.soundtrackCalled || audio.MenuMusicAudioSource == null) return;
-            
+            if (soundtrackJukebox.SoundtrackCalled || audio.MenuMusicAudioSource == null || audio == null) return;
             
             if (Input.GetKeyDown(SettingsModel.Instance.PauseTrack.Value.MainKey) && audio.MenuMusicAudioSource.isPlaying)
             {
-                audio.MenuMusicAudioSource.Pause();
-                StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                pausedTime = audio.MenuMusicAudioSource.clip.length - audio.MenuMusicAudioSource.time;
-                paused = true;
+                PauseTrack();
             }
             else if (Input.GetKeyDown(SettingsModel.Instance.PauseTrack.Value.MainKey) && paused)
             {
-                audio.MenuMusicAudioSource.UnPause();
-                menuMusicCoroutine = StaticManager.Instance.WaitSeconds(pausedTime, new Action(Singleton<GUISounds>.Instance.method_3));
-                paused = false;
+                ResumeTrack(); 
             }
             
             if (Input.GetKeyDown(SettingsModel.Instance.RestartTrack.Value.MainKey))
             {
-                audio.MenuMusicAudioSource.Stop();
-                if (MenuMusicPatch.trackCounter != 0)
-                {
-                    MenuMusicPatch.trackCounter--;
-                }
-                else
-                {
-                    MenuMusicPatch.trackCounter = MenuMusicPatch.trackArray.Count - 1;
-                }
-                StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                paused = false;
-                Singleton<GUISounds>.Instance.method_3();
+                RestartTrack();
             }
             
             if (Input.GetKeyDown(SettingsModel.Instance.PreviousTrack.Value.MainKey))
             {
-                audio.MenuMusicAudioSource.Stop();
-                MenuMusicPatch.trackCounter -= 2;
-                if (MenuMusicPatch.trackCounter < 0)
-                {
-                    MenuMusicPatch.trackCounter = MenuMusicPatch.trackArray.Count + (MenuMusicPatch.trackCounter);
-                }
-                StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                paused = false;
-                Singleton<GUISounds>.Instance.method_3();
+                PreviousTrack();
             }
             
             if (Input.GetKeyDown(SettingsModel.Instance.SkipTrack.Value.MainKey))
             {
-                audio.MenuMusicAudioSource.Stop();
-                StaticManager.Instance.StopCoroutine(menuMusicCoroutine);
-                paused = false;
-                Singleton<GUISounds>.Instance.method_3();
+                SkipTrack();
             }
         }
+
+        #region Controls
+
+        private void PauseTrack()
+        {
+            audio.MenuMusicAudioSource.Pause();
+            StaticManager.Instance.StopCoroutine(Coroutine);
+            pausedTime = audio.MenuMusicAudioSource.clip.length - audio.MenuMusicAudioSource.time;
+            paused = true;
+        }
+
+        private void ResumeTrack()
+        {
+            audio.MenuMusicAudioSource.UnPause();
+            Coroutine = StaticManager.Instance.WaitSeconds(pausedTime, new Action(Singleton<GUISounds>.Instance.method_3));
+            paused = false;
+        }
+
+        private void RestartTrack()
+        {
+            audio.MenuMusicAudioSource.Stop();
+            if (MenuMusicPatch.trackCounter != 0)
+            {
+                MenuMusicPatch.trackCounter--;
+            }
+            else
+            {
+                MenuMusicPatch.trackCounter = MenuMusicPatch.trackArray.Count - 1;
+            }
+            StaticManager.Instance.StopCoroutine(Coroutine);
+            paused = false;
+            Singleton<GUISounds>.Instance.method_3();
+        }
+
+        private void PreviousTrack()
+        {
+            audio.MenuMusicAudioSource.Stop();
+            MenuMusicPatch.trackCounter -= 2;
+            if (MenuMusicPatch.trackCounter < 0)
+            {
+                MenuMusicPatch.trackCounter = MenuMusicPatch.trackArray.Count + (MenuMusicPatch.trackCounter);
+            }
+            StaticManager.Instance.StopCoroutine(Coroutine);
+            paused = false;
+            Singleton<GUISounds>.Instance.method_3();
+        }
+
+        private void SkipTrack()
+        {
+            audio.MenuMusicAudioSource.Stop();
+            StaticManager.Instance.StopCoroutine(Coroutine);
+            paused = false;
+            Singleton<GUISounds>.Instance.method_3();
+        }
+
+        #endregion
     }
 }
