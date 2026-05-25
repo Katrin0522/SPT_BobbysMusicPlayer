@@ -3,6 +3,8 @@ using EFT.UI;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System;
+using System.Threading.Tasks;
 using BobbysMusicPlayer.Data;
 using BobbysMusicPlayer.Utils;
 using UnityEngine;
@@ -43,18 +45,31 @@ namespace BobbysMusicPlayer.Patches
         /// <summary>
         /// Each element of uiSoundsClips is a List of AudioClips since we want players to be able to import as many sounds as they want per folder.
         /// </summary>
-        internal static async void LoadUIClips()
+        internal static async Task LoadUIClips()
         {
-            int counter = 0;
-            foreach (var list in UISounds)
+            try
             {
-                UISoundsClips[counter] = new List<AudioClip>();
-                foreach (var track in list)
+                int counter = 0;
+                foreach (var list in UISounds)
                 {
-                    UISoundsClips[counter].Add(await AudioManager.AsyncRequestAudioClip(track));
-                    BobbysMusicPlayerPlugin.LogSource.LogInfo(Path.GetFileName(track) + " assigned to " + GlobalData.UISoundsDir[counter]);
+                    UISoundsClips[counter] = new List<AudioClip>();
+                    foreach (var track in list)
+                    {
+                        AudioClip clip = await AudioManager.AsyncRequestAudioClip(track);
+                        if (clip == null)
+                        {
+                            continue;
+                        }
+
+                        UISoundsClips[counter].Add(clip);
+                        BobbysMusicPlayerPlugin.LogSource.LogInfo(Path.GetFileName(track) + " assigned to " + GlobalData.UISoundsDir[counter]);
+                    }
+                    counter++;
                 }
-                counter++;
+            }
+            catch (Exception e)
+            {
+                BobbysMusicPlayerPlugin.LogSource.LogError("Error while loading UI sounds " + e);
             }
         }
     }

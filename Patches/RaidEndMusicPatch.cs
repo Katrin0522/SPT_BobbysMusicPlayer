@@ -29,12 +29,12 @@ namespace BobbysMusicPlayer.Patches
         [PatchPrefix]
         static bool Prefix(ref AudioClip __result, EEndGameSoundType soundType)
         {
-            if (raidEndDictionary[soundType].IsNullOrEmpty())
+            if (!raidEndDictionary.TryGetValue(soundType, out List<string> tracks) || tracks.IsNullOrEmpty())
             {
                 return true;
             }
             
-            LoadNextTrack(soundType);
+            LoadNextTrack(soundType, tracks);
             
             if (raidEndClip != null)
             {
@@ -45,9 +45,9 @@ namespace BobbysMusicPlayer.Patches
             return true;
         }
         
-        private static void LoadNextTrack(EEndGameSoundType soundType)
+        private static void LoadNextTrack(EEndGameSoundType soundType, List<string> tracks)
         {
-            string raidEndTrack = raidEndDictionary[soundType][Range(0, raidEndDictionary[soundType].Count)];
+            string raidEndTrack = tracks[Range(0, tracks.Count)];
             raidEndClip = AudioManager.RequestAudioClip(raidEndTrack);
             
             string trackName = Path.GetFileName(raidEndTrack);

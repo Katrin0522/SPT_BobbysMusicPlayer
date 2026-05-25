@@ -59,8 +59,8 @@ namespace BobbysMusicPlayer
             new OnGameWorldStartPatch().Enable();
             new OnGameWorldDisposePatch().Enable();
             
-            MenuMusicPatch.LoadAudioClips();
-            UISoundsPatch.LoadUIClips();
+            _ = MenuMusicPatch.LoadAudioClips();
+            _ = UISoundsPatch.LoadUIClips();
             
             LogSource.LogInfo("Plugin loaded!");
         }
@@ -81,8 +81,8 @@ namespace BobbysMusicPlayer
             {
                 if (!MenuMusicPatch.HasReloadedAudio)
                 {
-                    MenuMusicPatch.LoadAudioClips();
-                    UISoundsPatch.LoadUIClips();
+                    _ = MenuMusicPatch.LoadAudioClips();
+                    _ = UISoundsPatch.LoadUIClips();
                 }
                 _soundtrackJukebox.SoundtrackCalled = false;
                 _audio.HasStartedLoadingAudio = false;
@@ -92,7 +92,7 @@ namespace BobbysMusicPlayer
             
             MenuMusicPatch.HasReloadedAudio = false;
             
-            _audio.PrepareRaidAudioClips();
+            _ = _audio.PrepareRaidAudioClips();
 #if DEBUG
             OverlayDebug.Instance.UpdateOverlay();
 #endif

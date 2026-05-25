@@ -10,18 +10,18 @@ namespace BobbysMusicPlayer.Data
     {
         public static Dictionary<string, string[]> MapDictionary = new()
         {
-            ["RezervBase"] = Directory.GetFiles(PathData.MapSpecialDir + "\\reserve"),
-            ["bigmap"] = Directory.GetFiles(PathData.MapSpecialDir + "\\customs"),
-            ["factory4_night"] = Directory.GetFiles(PathData.MapSpecialDir + "\\factory"),
-            ["factory4_day"] = Directory.GetFiles(PathData.MapSpecialDir + "\\factory"),
-            ["Interchange"] = Directory.GetFiles(PathData.MapSpecialDir + "\\interchange"),
-            ["laboratory"] = Directory.GetFiles(PathData.MapSpecialDir + "\\labs"),
-            ["Shoreline"] = Directory.GetFiles(PathData.MapSpecialDir + "\\shoreline"),
-            ["Sandbox"] = Directory.GetFiles(PathData.MapSpecialDir + "\\ground_zero"),
-            ["Sandbox_high"] = Directory.GetFiles(PathData.MapSpecialDir + "\\ground_zero"),
-            ["Woods"] = Directory.GetFiles(PathData.MapSpecialDir + "\\woods"),
-            ["Lighthouse"] = Directory.GetFiles(PathData.MapSpecialDir + "\\lighthouse"),
-            ["TarkovStreets"] = Directory.GetFiles(PathData.MapSpecialDir + "\\streets")
+            ["RezervBase"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\reserve"),
+            ["bigmap"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\customs"),
+            ["factory4_night"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\factory"),
+            ["factory4_day"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\factory"),
+            ["Interchange"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\interchange"),
+            ["laboratory"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\labs"),
+            ["Shoreline"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\shoreline"),
+            ["Sandbox"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\ground_zero"),
+            ["Sandbox_high"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\ground_zero"),
+            ["Woods"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\woods"),
+            ["Lighthouse"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\lighthouse"),
+            ["TarkovStreets"] = PathData.GetFilesOrEmpty(PathData.MapSpecialDir + "\\streets")
         };
     
         /// <summary>

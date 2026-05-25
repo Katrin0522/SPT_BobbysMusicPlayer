@@ -9,6 +9,7 @@ using Comfort.Common;
 using System.Linq;
 using EFT;
 using System;
+using System.Threading.Tasks;
 using BobbysMusicPlayer.Jukebox;
 using BobbysMusicPlayer.Models;
 using BobbysMusicPlayer.Utils;
@@ -44,29 +45,25 @@ namespace BobbysMusicPlayer.Patches
                 {
                     if (trackArray.IsNullOrEmpty())
                     {
+                        if (___audioClip_0 == null || ___audioClip_0.Length == 0)
+                        {
+                            return true;
+                        }
+
                         // If the player is not replacing Main Menu music, they will get to enjoy a properly shuffled default playlist.
                         // All BSG does is pick a random track and make sure it's not the same one that just played.
                         // More importantly, adding each element of BSG's AudioClip array to our trackArray means that players can
                         // use "Jukebox" controls on the default menu music.
-                        
-                        int[] randomArray = new int[___audioClip_0.Length];
-                        BobbysMusicPlayerPlugin.LogSource.LogInfo("Starting 'for loop'");
-                        for (int i = 0; i < ___audioClip_0.Length - 1; i++)
-                        {
-                            BobbysMusicPlayerPlugin.LogSource.LogInfo("for loop iteration " + i);
-                            int randomInt;
-                            do
-                            {
-                                BobbysMusicPlayerPlugin.LogSource.LogInfo("choosing randomInt");
-                                randomInt = Range(0, ___audioClip_0.Length);
-                            } while (randomArray.Contains(randomInt));
 
-                            randomArray[i] = randomInt;
-                            trackArray.Add(___audioClip_0[randomInt]);
-                        }
+                        trackArray.AddRange(___audioClip_0.OrderBy(_ => Range(0, int.MaxValue)));
                     }
 
                     Singleton<GUISounds>.Instance.method_7();
+                    if (trackCounter >= trackArray.Count)
+                    {
+                        trackCounter = 0;
+                    }
+
                     audio.MenuMusicAudioSource.clip = trackArray[trackCounter];
                     audio.MenuMusicAudioSource.Play();
                     trackCounter++;
@@ -80,6 +77,16 @@ namespace BobbysMusicPlayer.Patches
                 }
                 else
                 {
+                    if (trackArray.IsNullOrEmpty())
+                    {
+                        return true;
+                    }
+
+                    if (trackCounter >= trackArray.Count)
+                    {
+                        trackCounter = 0;
+                    }
+
                     if (trackArray.Count == 1)
                     {
                         trackCounter = 0;
@@ -111,38 +118,49 @@ namespace BobbysMusicPlayer.Patches
         /// <summary>
         /// This method is largely identical to BobbysMusicPlayerPlugin.LoadAmbientSoundtrackClips
         /// </summary>
-        internal static async void LoadAudioClips()
+        internal static async Task LoadAudioClips()
         {
-            float totalLength = 0;
-            HasReloadedAudio = true;
-            
-            if (menuTrackList.IsNullOrEmpty())
+            try
             {
-                return;
+                float totalLength = 0;
+                HasReloadedAudio = true;
+            
+                if (menuTrackList.IsNullOrEmpty())
+                {
+                    return;
+                }
+            
+                trackArray.Clear();
+                trackNamesArray.Clear();
+                trackListToPlay.Clear();
+                trackListToPlay.AddRange(menuTrackList);
+            
+                float targetLength = SettingsModel.Instance.CustomMenuMusicLength.Value * 60f;
+            
+                do
+                {
+                    int nextRandom = Range(0, trackListToPlay.Count);
+                    string track = trackListToPlay[nextRandom];
+                    string trackName = Path.GetFileName(track);
+                
+                    AudioClip unityAudioClip = await AudioManager.AsyncRequestAudioClip(track);
+                    trackListToPlay.Remove(track);
+                    if (unityAudioClip == null)
+                    {
+                        continue;
+                    }
+                
+                    trackArray.Add(unityAudioClip);
+                    trackNamesArray.Add(trackName);
+                    totalLength += unityAudioClip.length;
+                
+                    BobbysMusicPlayerPlugin.LogSource.LogInfo(trackName + " has been loaded and added to playlist");
+                } while (totalLength < targetLength && !trackListToPlay.IsNullOrEmpty());
             }
-            
-            trackArray.Clear();
-            trackNamesArray.Clear();
-            trackListToPlay.Clear();
-            trackListToPlay.AddRange(menuTrackList);
-            
-            float targetLength = SettingsModel.Instance.CustomMenuMusicLength.Value * 60f;
-            
-            do
+            catch (Exception e)
             {
-                int nextRandom = Range(0, trackListToPlay.Count);
-                string track = trackListToPlay[nextRandom];
-                string trackName = Path.GetFileName(track);
-                
-                AudioClip unityAudioClip = await AudioManager.AsyncRequestAudioClip(track);
-                
-                trackArray.Add(unityAudioClip);
-                trackNamesArray.Add(trackName);
-                trackListToPlay.Remove(track);
-                totalLength += trackArray.Last().length;
-                
-                BobbysMusicPlayerPlugin.LogSource.LogInfo(trackName + " has been loaded and added to playlist");
-            } while (totalLength < targetLength && !trackListToPlay.IsNullOrEmpty());
+                BobbysMusicPlayerPlugin.LogSource.LogError("Error while loading menu music " + e);
+            }
         }
     }
     

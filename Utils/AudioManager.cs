@@ -204,33 +204,33 @@ namespace BobbysMusicPlayer.Utils
         /// </summary>
         private void LoadMusic()
         {
-            MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(PathData.CustomMenuMusicSounds));
+            MenuMusicPatch.menuTrackList.AddRange(GetSupportedAudioFiles(PathData.CustomMenuMusicSounds));
             
             //This if statement exists just in case some people install outdated music packs by mistake
-            if (MenuMusicPatch.menuTrackList.IsNullOrEmpty() && Directory.Exists(PathData.CustomMenuMusicSoundsMissing))
+            if (MenuMusicPatch.menuTrackList.IsNullOrEmpty())
             {
-                MenuMusicPatch.menuTrackList.AddRange(Directory.GetFiles(PathData.CustomMenuMusicSoundsMissing));
+                MenuMusicPatch.menuTrackList.AddRange(GetSupportedAudioFiles(PathData.CustomMenuMusicSoundsMissing));
             }
             
-            _defaultTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackDefault));
-            if (_defaultTrackList.IsNullOrEmpty() && Directory.Exists(PathData.SoundtrackSoundsMissing))
+            _defaultTrackList.AddRange(GetSupportedAudioFiles(PathData.SoundtrackDefault));
+            if (_defaultTrackList.IsNullOrEmpty())
             {
-                _defaultTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackSoundsMissing));
+                _defaultTrackList.AddRange(GetSupportedAudioFiles(PathData.SoundtrackSoundsMissing));
             }
             
-            _combatMusicTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackCombat));
+            _combatMusicTrackList.AddRange(GetSupportedAudioFiles(PathData.SoundtrackCombat));
             
-            _spawnTrackList.AddRange(Directory.GetFiles(PathData.SoundtrackSpawn));
+            _spawnTrackList.AddRange(GetSupportedAudioFiles(PathData.SoundtrackSpawn));
             
-            RaidEndMusicPatch.DeathMusicList.AddRange(Directory.GetFiles(PathData.SoundtrackDeath));
-            RaidEndMusicPatch.ExtractMusicList.AddRange(Directory.GetFiles(PathData.SoundtrackExtract));
+            RaidEndMusicPatch.DeathMusicList.AddRange(GetSupportedAudioFiles(PathData.SoundtrackDeath));
+            RaidEndMusicPatch.ExtractMusicList.AddRange(GetSupportedAudioFiles(PathData.SoundtrackExtract));
             
             var counter = 0;
             foreach (var dir in GlobalData.UISoundsDir)
             {
                 // Each element of uiSounds is a List of strings so that users can add as few or as many sounds as they want to a given folder
                 UISoundsPatch.UISounds[counter] = new List<string>();
-                UISoundsPatch.UISounds[counter].AddRange(Directory.GetFiles(PathData.SoundtrackUI + dir));
+                UISoundsPatch.UISounds[counter].AddRange(GetSupportedAudioFiles(PathData.SoundtrackUI + dir));
                 counter++;
             }
         }
@@ -238,17 +238,18 @@ namespace BobbysMusicPlayer.Utils
         /// <summary>
         /// This method gets called once when loading into a raid. It makes sure every AudioClip is ready to play in the raid
         /// </summary>
-        public async void PrepareRaidAudioClips()
+        public async Task PrepareRaidAudioClips()
         {
             try
             {
                 if (!HasStartedLoadingAudio)
                 {
                     HasStartedLoadingAudio = true;
+                    Task ambientLoadTask = null;
                 
                     if (!_defaultTrackList.IsNullOrEmpty())
                     {
-                        LoadAmbientSoundtrackClips();
+                        ambientLoadTask = LoadAmbientSoundtrackClips();
                     }
                 
                     if (!_spawnTrackList.IsNullOrEmpty())
@@ -256,7 +257,13 @@ namespace BobbysMusicPlayer.Utils
                         _spawnTrackClipList.Clear();
                         foreach (var track in _spawnTrackList)
                         {
-                            _spawnTrackClipList.Add(await AsyncRequestAudioClip(track));
+                            AudioClip clip = await AsyncRequestAudioClip(track);
+                            if (clip == null)
+                            {
+                                continue;
+                            }
+
+                            _spawnTrackClipList.Add(clip);
                             BobbysMusicPlayerPlugin.LogSource.LogInfo("[PrepareRaidAudioClips] RequestAudioClip called for spawnTrackClip");
                         }
                         SpawnTrackHasPlayed = false;
@@ -275,11 +282,26 @@ namespace BobbysMusicPlayer.Utils
                         _combatMusicClipList.Clear();
                         foreach (var track in _combatMusicTrackList)
                         {
-                            _combatMusicClipList.Add(await AsyncRequestAudioClip(track));
+                            AudioClip clip = await AsyncRequestAudioClip(track);
+                            if (clip != null)
+                            {
+                                _combatMusicClipList.Add(clip);
+                            }
+                        }
+
+                        if (_combatMusicClipList.IsNullOrEmpty())
+                        {
+                            BobbysMusicPlayerPlugin.LogSource.LogWarning("[PrepareRaidAudioClips] No combat music clips loaded");
+                            return;
                         }
                     
                         CombatAudioSource.clip = _combatMusicClipList[Range(0, _combatMusicClipList.Count)];
                         BobbysMusicPlayerPlugin.LogSource.LogInfo($"[PrepareRaidAudioClips] Music in combat loaded! {CombatAudioSource.clip.length}");
+                    }
+
+                    if (ambientLoadTask != null)
+                    {
+                        await ambientLoadTask;
                     }
                 }
             }
@@ -292,7 +314,7 @@ namespace BobbysMusicPlayer.Utils
         /// <summary>
         /// Load ambient OST
         /// </summary>
-        private async void LoadAmbientSoundtrackClips()
+        private async Task LoadAmbientSoundtrackClips()
         {
             float totalLength = 0f;
             float targetLength = 60f * SettingsModel.Instance.SoundtrackLength.Value;
@@ -303,20 +325,23 @@ namespace BobbysMusicPlayer.Utils
             AmbientTrackNamesArray.Clear();
             _ambientTrackListToPlay.Clear();
             
-            BobbysMusicPlayerPlugin.LogSource.LogInfo("Map is " + Singleton<GameWorld>.Instance.MainPlayer.Location + ".");
+            string location = Singleton<GameWorld>.Instance.MainPlayer.Location;
+            BobbysMusicPlayerPlugin.LogSource.LogInfo("Map is " + location + ".");
+            GlobalData.MapDictionary.TryGetValue(location, out string[] mapTracks);
+            mapTracks = mapTracks ?? Array.Empty<string>();
             
-            if (GlobalData.MapDictionary[Singleton<GameWorld>.Instance.MainPlayer.Location].IsNullOrEmpty() || SettingsModel.Instance.SoundtrackPlaylist.Value == ESoundtrackPlaylist.DefaultPlaylistOnly)
+            if (mapTracks.IsNullOrEmpty() || SettingsModel.Instance.SoundtrackPlaylist.Value == ESoundtrackPlaylist.DefaultPlaylistOnly)
             {
                 _ambientTrackListToPlay.AddRange(_defaultTrackList);
             }
             else if (SettingsModel.Instance.SoundtrackPlaylist.Value == ESoundtrackPlaylist.CombinedPlaylists)
             {
                 _ambientTrackListToPlay.AddRange(_defaultTrackList);
-                _ambientTrackListToPlay.AddRange(GlobalData.MapDictionary[Singleton<GameWorld>.Instance.MainPlayer.Location]);
+                _ambientTrackListToPlay.AddRange(mapTracks);
             }
             else if (SettingsModel.Instance.SoundtrackPlaylist.Value == ESoundtrackPlaylist.MapSpecificPlaylistOnly)
             {
-                _ambientTrackListToPlay.AddRange(GlobalData.MapDictionary[Singleton<GameWorld>.Instance.MainPlayer.Location]);
+                _ambientTrackListToPlay.AddRange(mapTracks);
             }
             while ((totalLength < targetLength) && (!_ambientTrackListToPlay.IsNullOrEmpty()))
             {
@@ -324,9 +349,14 @@ namespace BobbysMusicPlayer.Utils
                 string track = _ambientTrackListToPlay[nextRandom];
                 string trackName = Path.GetFileName(track);
                 AudioClip unityAudioClip = await AsyncRequestAudioClip(track);
+                _ambientTrackListToPlay.Remove(track);
+                if (unityAudioClip == null)
+                {
+                    continue;
+                }
+
                 AmbientTrackArray.Add(unityAudioClip);
                 AmbientTrackNamesArray.Add(trackName);
-                _ambientTrackListToPlay.Remove(track);
                 
                 // Adding the length of each track to totalLength makes sure that the mod loads the minimum number of random tracks to meet the target length.
                 totalLength += AmbientTrackArray.Last().length;
@@ -343,8 +373,13 @@ namespace BobbysMusicPlayer.Utils
         internal static async Task<AudioClip> AsyncRequestAudioClip(string path)
         {
             string extension = Path.GetExtension(path).ToLowerInvariant();
+            if (!GlobalData.AudioTypes.TryGetValue(extension, out AudioType audioType))
+            {
+                BobbysMusicPlayerPlugin.LogSource.LogWarning($"Soundtrack: Unsupported audio file type -> '{path}'");
+                return null;
+            }
 
-            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, GlobalData.AudioTypes[extension]))
+            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, audioType))
             {
                 var operation = uwr.SendWebRequest();
 
@@ -372,8 +407,13 @@ namespace BobbysMusicPlayer.Utils
         internal static AudioClip RequestAudioClip(string path)
         {
             string extension = Path.GetExtension(path).ToLowerInvariant();
+            if (!GlobalData.AudioTypes.TryGetValue(extension, out AudioType audioType))
+            {
+                BobbysMusicPlayerPlugin.LogSource.LogWarning($"Soundtrack: Unsupported audio file type -> '{path}'");
+                return null;
+            }
 
-            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, GlobalData.AudioTypes[extension]))
+            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, audioType))
             {
                 var operation = uwr.SendWebRequest();
 
@@ -390,6 +430,12 @@ namespace BobbysMusicPlayer.Utils
 
                 return DownloadHandlerAudioClip.GetContent(uwr);
             }
+        }
+
+        private static IEnumerable<string> GetSupportedAudioFiles(string path)
+        {
+            return PathData.GetFilesOrEmpty(path)
+                .Where(file => GlobalData.AudioTypes.ContainsKey(Path.GetExtension(file).ToLowerInvariant()));
         }
 
 

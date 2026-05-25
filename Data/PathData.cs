@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace BobbysMusicPlayer.Data
 {
@@ -18,5 +19,10 @@ namespace BobbysMusicPlayer.Data
         //Paths if player wrong moved OST pack 
         public static string CustomMenuMusicSoundsMissing = baseDirectory + "\\BepInEx\\plugins\\CustomMenuMusic\\sounds";
         public static string SoundtrackSoundsMissing = baseDirectory + "\\BepInEx\\plugins\\Soundtrack\\sounds";
+
+        public static string[] GetFilesOrEmpty(string path)
+        {
+            return Directory.Exists(path) ? Directory.GetFiles(path) : Array.Empty<string>();
+        }
     }
 }
